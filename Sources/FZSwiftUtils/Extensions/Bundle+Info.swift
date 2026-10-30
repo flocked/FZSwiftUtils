@@ -23,22 +23,16 @@ extension Bundle {
         
         /// The bundle identifier.
         public let bundleIdentifier: String
-        
         /// The bundle name.
         public let bundleName: String?
-        
         /// The name of the executable.
         public let executable: String
-        
         /// The display name.
         public let displayName: String?
-        
         /// The version.
         public let version: String?
-        
         /// The short version.
         public let shortVersion: String?
-        
         /// The minimum version.
         public let minimumSystemVersion: String?
         
@@ -47,7 +41,6 @@ extension Bundle {
         
         /// The name of the icon file.
         public let iconFile: String?
-        
         /// The name of the icon.
         public let iconName: String?
         

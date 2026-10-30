@@ -13,20 +13,11 @@ public extension PartialKeyPath {
         _kvcKeyPathString
     }
     
-    #if swift(>=5.8)
     /// The name of the key path.
     var stringValue: String {
-        if let keyPath = kvcStringValue {
-            return keyPath
-        }
+        if let keyPath = kvcStringValue { return keyPath }
         let keyPath = String(describing: self)
-        guard keyPath.hasPrefix("\\") else { return keyPath }
-        return keyPath.split(separator: ".", maxSplits: 1).dropFirst().first.map(String.init) ?? keyPath
+        guard keyPath.hasPrefix("\\"), let split = keyPath.split(separator: ".", maxSplits: 1)[safe: 1] else { return keyPath }
+        return String(split)
     }
-    #else
-    /// The name of the key path if it's a `ObjC` property, else the hash value.
-    var stringValue: String {
-        kvcStringValue ?? String(hashValue)
-    }
-    #endif
 }

@@ -551,60 +551,81 @@ public extension Sequence where Element: RawRepresentable, Element.RawValue: Equ
     }
 }
 
+public extension Sequence {
+    /// Returns the element with the smallest transformed value, ignoring nil values.
+    @inlinable
+    func min<V: Comparable>(by value: (Element) throws -> V?) rethrows -> Element? {
+        try extremum(by: value, using: <)?.element
+    }
+
+    /// Returns the element with the largest transformed value, ignoring nil values.
+    @inlinable
+    func max<V: Comparable>(by value: (Element) throws -> V?) rethrows -> Element? {
+        try extremum(by: value, using: >)?.element
+    }
+
+    /// Returns the smallest transformed value, ignoring nil values.
+    @inlinable
+    func min<V: Comparable>(of value: (Element) throws -> V?) rethrows -> V? {
+        try extremum(by: value, using: <)?.value
+    }
+
+    /// Returns the largest transformed value, ignoring nil values.
+    @inlinable
+    func max<V: Comparable>(of value: (Element) throws -> V?) rethrows -> V? {
+        try extremum(by: value, using: >)?.value
+    }
+
+    /// Returns the element with the smallest value at the specified key path.
+    @inlinable
+    func min<V: Comparable>(by keyPath: KeyPath<Element, V>) -> Element? {
+        extremum(by: { $0[keyPath: keyPath] }, using: <)?.element
+    }
+
+    /// Returns the element with the smallest non-nil value at the specified key path.
+    @inlinable
+    func min<V: Comparable>(by keyPath: KeyPath<Element, V?>) -> Element? {
+        extremum(by: { $0[keyPath: keyPath] }, using: <)?.element
+    }
+
+    /// Returns the element with the largest value at the specified key path.
+    @inlinable
+    func max<V: Comparable>(by keyPath: KeyPath<Element, V>) -> Element? {
+        extremum(by: { $0[keyPath: keyPath] }, using: >)?.element
+    }
+
+    /// Returns the element with the largest non-nil value at the specified key path.
+    @inlinable
+    func max<V: Comparable>(by keyPath: KeyPath<Element, V?>) -> Element? {
+        extremum(by: { $0[keyPath: keyPath] }, using: >)?.element
+    }
+
+    /// Returns the smallest value at the specified key path.
+    @inlinable
+    func min<V: Comparable>(of keyPath: KeyPath<Element, V>) -> V? {
+        extremum(by: { $0[keyPath: keyPath] }, using: <)?.value
+    }
+
+    /// Returns the smallest non-nil value at the specified key path.
+    @inlinable
+    func min<V: Comparable>(of keyPath: KeyPath<Element, V?>) -> V? {
+        extremum(by: { $0[keyPath: keyPath] }, using: <)?.value
+    }
+
+    /// Returns the largest value at the specified key path.
+    @inlinable
+    func max<V: Comparable>(of keyPath: KeyPath<Element, V>) -> V? {
+        extremum(by: { $0[keyPath: keyPath] }, using: >)?.value
+    }
+
+    /// Returns the largest non-nil value at the specified key path.
+    @inlinable
+    func max<V: Comparable>(of keyPath: KeyPath<Element, V?>) -> V? {
+        extremum(by: { $0[keyPath: keyPath] }, using: >)?.value
+    }
+}
+
 extension Sequence {
-    /// Returns the element whose transformed value is the smallest.
-    @inlinable
-    public func min<Value: Comparable>(by value: (Element) -> Value) -> Element? {
-        extremum(by: value, using: <)
-    }
-    
-    /// Returns the element whose transformed value is the largest.
-    @inlinable
-    public func max<Value: Comparable>(by value: (Element) -> Value) -> Element? {
-        extremum(by: value, using: >)
-    }
-    
-    /**
-     Returns the minimum element in the sequence, using the given value of the key path as the comparison between elements.
-     
-     - Parameter keyPath: The key path to the comparable value.
-     - Returns: The sequence’s minimum element. If the sequence has no elements, returns `nil`.
-     */
-    public func min<V: Comparable>(by keyPath: KeyPath<Element, V>) -> Element? {
-        min(by: { $0[keyPath: keyPath] })
-    }
-    
-    /**
-     Returns the maximum element in the sequence, using the given value of the key path as the comparison between elements.
-     
-     - Parameter keyPath: The key path to the comparable value.
-     - Returns: The sequence’s maximum element. If the sequence has no elements, returns `nil`.
-     */
-    public func max<V: Comparable>(by keyPath: KeyPath<Element, V>) -> Element? {
-        max(by: { $0[keyPath: keyPath] })
-    }
-
-    /**
-     Returns the minimum value found at the given key path among all elements in the sequence.
-
-     - Parameter keyPath: A key path whose value will be extracted from each element and compared.
-     - Returns: The minimum value for the given key path, or `nil` if the sequence is empty.
-     */
-    public func min<V: Comparable>(of keyPath: KeyPath<Element, V>) -> V? {
-        min(by: keyPath)?[keyPath: keyPath]
-    }
-    
-    
-    /**
-     Returns the maximum value found at the given key path among all elements in the sequence.
-
-     - Parameter keyPath: A key path whose value will be extracted from each element and compared.
-     - Returns: The maximum value for the given key path, or `nil` if the sequence is empty.
-     */
-    public func max<V: Comparable>(of keyPath: KeyPath<Element, V>) -> V? {
-        max(by: keyPath)?[keyPath: keyPath]
-    }
-    
     /**
      Returns the sum of values found at the given key path among all elements in the sequence.
 
@@ -636,21 +657,17 @@ extension Sequence {
     }
     
     @usableFromInline
-    internal func extremum<Value>(by value: (Element) -> Value, using areInIncreasingOrder: (Value, Value) -> Bool) -> Element? {
-        var iterator = makeIterator()
-        guard var selected = iterator.next() else { return nil }
-
-        var selectedValue = value(selected)
-
-        while let element = iterator.next() {
-            let elementValue = value(element)
-
-            if areInIncreasingOrder(elementValue, selectedValue) {
-                selected = element
-                selectedValue = elementValue
+    internal func extremum<Value>(by value: (Element) throws -> Value?, using areInIncreasingOrder: (Value, Value) -> Bool) rethrows -> (element: Element, value: Value)? {
+        var selected: (element: Element, value: Value)?
+        for element in self {
+            guard let elementValue = try value(element) else { continue }
+            if let current = selected {
+                guard areInIncreasingOrder(elementValue, current.value) else { continue }
+                selected = (element, elementValue)
+            } else {
+                selected = (element, elementValue)
             }
         }
-
         return selected
     }
 }
@@ -779,6 +796,101 @@ public extension RangeReplaceableCollection {
     }
 }
 
+public struct ValueTransform<Value, Result>: Sendable {
+    let handler: @Sendable (Value, Value) throws -> Result
+
+    public init(_ handler: @Sendable @escaping (_ first: Value, _ second: Value) throws -> Result) {
+        self.handler = handler
+    }
+    
+    public init(_ handler: @Sendable @escaping (_ value: Value) throws -> Result) {
+        self.handler = { first,_ in try handler(first) }
+    }
+    
+    public func transform(_ first: Value, _ second: Value) throws -> Result {
+        try handler(first, second)
+    }
+    
+    public func transform(_ value: Value) throws -> Result {
+        try handler(value, value)
+    }
+
+    public func transform(_ values: (first: Value, second: Value)) throws -> Result {
+        try handler(values.first, values.second)
+    }
+}
+
+
+
+public struct ValueSelector<Value>: Sendable {
+    let handler: @Sendable (Value, Value) throws -> Value?
+    
+    public init(_ handler: @Sendable @escaping (_ first: Value, _ second: Value) throws -> Value?) {
+        self.handler = handler
+    }
+    
+    @_disfavoredOverload
+    public func select(_ first: Value, _ second: Value) throws -> Value? {
+        try handler(first, second)
+    }
+    
+    @_disfavoredOverload
+    public func select(_ values: (first: Value, second: Value)) throws -> Value? {
+        try handler(values.first, values.second)
+    }
+    
+    public func select(_ first: Value, _ second: Value) throws -> Value {
+        try handler(first, second) ?? first
+    }
+    
+    public func select(_ values: (first: Value, second: Value)) throws -> Value {
+        try select(values.first, values.second)
+    }
+    
+    public func select(_ first: Value?, _ second: Value?) throws -> Value? {
+        guard let first = first ?? second else { return nil }
+        return try handler(first, second ?? first)
+    }
+    
+    public func select(_ values: (first: Value?, second: Value?)) throws -> Value? {
+        try select(values.first, values.second)
+    }
+        
+    @_disfavoredOverload
+    public func callAsFunction(_ first: Value, _ second: Value) throws -> Value? {
+        try select(first, second)
+    }
+    
+    @_disfavoredOverload
+    public func callAsFunction(_ values: (first: Value, second: Value)) throws -> Value? {
+        try select(values.first, values.second)
+    }
+    
+    public func callAsFunction(_ first: Value, _ second: Value) throws -> Value {
+        try select(first, second)
+    }
+    
+    public func callAsFunction(_ values: (first: Value, second: Value)) throws -> Value {
+        try select(values.first, values.second)
+    }
+    
+    public func callAsFunction(_ first: Value?, _ second: Value?) throws -> Value? {
+        try select(first, second)
+    }
+    
+    public func callAsFunction(_ values: (first: Value?, second: Value?)) throws -> Value? {
+        try select(values.first, values.second)
+    }
+    
+    public static var keepFirst: Self {
+        Self { first,_ in first }
+    }
+    
+    public static var keepSecond: Self {
+        Self { _,second in second }
+    }
+}
+
 public extension Sequence {
     /// Returns the element produced by repeatedly selecting between the current result and each subsequent element.
     func select<E>(_ selector: (_ lhs: Element, _ rhs: Element) throws(E) -> Element) throws(E) -> Element? where E : Error {
@@ -795,5 +907,41 @@ public extension Sequence where Element: Collection {
     /// The nonempty elements of the sequence.
     var nonEmpty: [Element] {
         filter({ !$0.isEmpty })
+    }
+}
+
+public extension Sequence {
+    /// Returns the elements with the minimum and maximum transformed value.
+    func minMax<V: Comparable>(by value: (Element) throws -> V) rethrows -> (min: Element, max: Element)? {
+        try lazy.map({ try ($0, value($0)) }).minMax()
+    }
+    
+    /// Returns the elements with the minimum and maximum non-`nil` transformed value.
+    func minMax<V: Comparable>(by value: (Element) throws -> V?) rethrows -> (min: Element, max: Element)? {
+        try lazy.compactMap({ element in try value(element).map({ (element, $0) }) }).minMax()
+    }
+    
+    /// Returns the minimum and maximum element of the sequence.
+    func minMax() -> (min: Element, max: Element)? where Element: Comparable {
+        lazy.map({ ($0, $0) }).minMax()
+    }
+    
+    /// Returns the minimum and maximum non-`nil` element of the sequence.
+    func minMax() -> (min: Element.Wrapped, max: Element.Wrapped)? where Element: OptionalProtocol, Element.Wrapped: Comparable {
+        lazy.compactMap({ $0.optional.map({ ($0, $0) }) }).minMax()
+    }
+    
+    fileprivate func minMax<E, V: Comparable>() -> (min: E, max: E)? where Element == (element: E, value: V) {
+        var iterator = makeIterator()
+        guard var min = iterator.next() else { return nil }
+        var max = min
+        while let element = iterator.next() {
+            if element.value < min.value {
+                min = element
+            } else if element.value > max.value {
+                max = element
+            }
+        }
+        return (min.element, max.element)
     }
 }

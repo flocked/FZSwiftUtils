@@ -8,31 +8,29 @@
 import Foundation
 
 public struct BidirectionalDictionary<Left: Hashable, Right: Hashable>: ExpressibleByDictionaryLiteral, CustomStringConvertible, CustomDebugStringConvertible {
-    @usableFromInline internal var _ltr: [Left: Right]
-    @usableFromInline internal var _rtl: [Right: Left]
+    @usableFromInline var _leftRight: [Left: Right]
+    @usableFromInline var _rightLeft: [Right: Left]
 
     @inlinable
     public init() {
-        self._ltr = Dictionary()
-        self._rtl = Dictionary()
+        _leftRight = Dictionary()
+        _rightLeft = Dictionary()
     }
 
     @inlinable
     public init(minimumCapacity: Int) {
-        self._ltr = Dictionary(minimumCapacity: minimumCapacity)
-        self._rtl = Dictionary(minimumCapacity: minimumCapacity)
+        _leftRight = Dictionary(minimumCapacity: minimumCapacity)
+        _rightLeft = Dictionary(minimumCapacity: minimumCapacity)
     }
 
-    public init<S>(uniqueKeysWithValues keysAndValues: S) where S: Sequence, S.Element == (Left, Right) {
+    public init<S: Sequence<(Left, Right)>>(uniqueKeysWithValues keysAndValues: S) {
         self.init(minimumCapacity: keysAndValues.underestimatedCount)
 
         for (left, right) in keysAndValues {
-            guard _ltr.updateValue(right, forKey: left) == nil else {
-                fatalError("\(Self.self) contains duplicate left value: \(String(reflecting: left)).")
-            }
-            guard _rtl.updateValue(left, forKey: right) == nil else {
-                fatalError("\(Self.self) contains duplicate right value: \(String(reflecting: right)).")
-            }
+            precondition(_leftRight[left] == nil, "Duplicate left value: \(left)")
+            precondition(_rightLeft[right] == nil, "Duplicate right value: \(right)")
+            _leftRight[left] = right
+            _rightLeft[right] = left
         }
 
         _invariantCheck()
@@ -44,10 +42,10 @@ public struct BidirectionalDictionary<Left: Hashable, Right: Hashable>: Expressi
 
     @inlinable
     public init?(_ dictionary: [Left: Right]) {
-        self._ltr = dictionary
-        self._rtl = Dictionary(minimumCapacity: dictionary.count)
+        self._leftRight = dictionary
+        self._rightLeft = Dictionary(minimumCapacity: dictionary.count)
         for (left, right) in dictionary {
-            guard _rtl.updateValue(left, forKey: right) == nil else {
+            guard _rightLeft.updateValue(left, forKey: right) == nil else {
                 return nil
             }
         }
@@ -55,20 +53,20 @@ public struct BidirectionalDictionary<Left: Hashable, Right: Hashable>: Expressi
     }
 
     @usableFromInline
-    internal init(_ltr: [Left: Right], _rtl: [Right: Left]) {
-        self._ltr = _ltr
-        self._rtl = _rtl
+    init(_leftRight: [Left: Right], _rightLeft: [Right: Left]) {
+        self._leftRight = _leftRight
+        self._rightLeft = _rightLeft
     }
 
     @inlinable
     public var capacity: Int {
-        Swift.min(_ltr.capacity, _rtl.capacity)
+        Swift.min(_leftRight.capacity, _rightLeft.capacity)
     }
 
     @inlinable
     public mutating func reserveCapacity(_ minimumCapacity: Int) {
-        _ltr.reserveCapacity(minimumCapacity)
-        _rtl.reserveCapacity(minimumCapacity)
+        _leftRight.reserveCapacity(minimumCapacity)
+        _rightLeft.reserveCapacity(minimumCapacity)
     }
 
     @discardableResult
@@ -91,8 +89,8 @@ public struct BidirectionalDictionary<Left: Hashable, Right: Hashable>: Expressi
     @inlinable
     public mutating func removeValue(forLeft leftValue: Left) -> Right? {
         defer { _invariantCheck() }
-        guard let rightValue = _ltr.removeValue(forKey: leftValue) else { return nil }
-        _rtl.removeValue(forKey: rightValue)
+        guard let rightValue = _leftRight.removeValue(forKey: leftValue) else { return nil }
+        _rightLeft.removeValue(forKey: rightValue)
         return rightValue
     }
 
@@ -100,50 +98,48 @@ public struct BidirectionalDictionary<Left: Hashable, Right: Hashable>: Expressi
     @inlinable
     public mutating func removeValue(forRight rightValue: Right) -> Left? {
         defer { _invariantCheck() }
-        guard let leftValue = _rtl.removeValue(forKey: rightValue) else { return nil }
-        _ltr.removeValue(forKey: leftValue)
+        guard let leftValue = _rightLeft.removeValue(forKey: rightValue) else { return nil }
+        _leftRight.removeValue(forKey: leftValue)
         return leftValue
     }
 
     @inlinable
     public mutating func removeAll(keepingCapacity keepCapacity: Bool = false) {
         defer { _invariantCheck() }
-        _ltr.removeAll(keepingCapacity: keepCapacity)
-        _rtl.removeAll(keepingCapacity: keepCapacity)
+        _leftRight.removeAll(keepingCapacity: keepCapacity)
+        _rightLeft.removeAll(keepingCapacity: keepCapacity)
     }
 
     @inlinable
     public func contains(left leftValue: Left) -> Bool {
-        _ltr[leftValue] != nil
+        _leftRight[leftValue] != nil
     }
 
     @inlinable
     public func contains(right rightValue: Right) -> Bool {
-        _rtl[rightValue] != nil
+        _rightLeft[rightValue] != nil
     }
 
     @inlinable
     public subscript(left leftValue: Left) -> Right? {
-        get {
-            _ltr[leftValue]
-        }
+        get { _leftRight[leftValue] }
         set(rightValue) {
             defer { _invariantCheck() }
 
-            guard _ltr[leftValue] != rightValue else { return }
+            guard _leftRight[leftValue] != rightValue else { return }
 
             guard let rightValue else {
-                guard let existingRight = _ltr.removeValue(forKey: leftValue) else { return }
-                _rtl.removeValue(forKey: existingRight)
+                guard let existingRight = _leftRight.removeValue(forKey: leftValue) else { return }
+                _rightLeft.removeValue(forKey: existingRight)
                 return
             }
 
-            if let replacedLeft = _rtl.updateValue(leftValue, forKey: rightValue), replacedLeft != leftValue {
-                _ltr.removeValue(forKey: replacedLeft)
+            if let replacedLeft = _rightLeft.updateValue(leftValue, forKey: rightValue), replacedLeft != leftValue {
+                _leftRight.removeValue(forKey: replacedLeft)
             }
 
-            if let replacedRight = _ltr.updateValue(rightValue, forKey: leftValue), replacedRight != rightValue {
-                _rtl.removeValue(forKey: replacedRight)
+            if let replacedRight = _leftRight.updateValue(rightValue, forKey: leftValue), replacedRight != rightValue {
+                _rightLeft.removeValue(forKey: replacedRight)
             }
         }
     }
@@ -156,30 +152,29 @@ public struct BidirectionalDictionary<Left: Hashable, Right: Hashable>: Expressi
 
     @inlinable
     public subscript(right rightValue: Right) -> Left? {
-        get {
-            _rtl[rightValue]
-        }
+        get { _rightLeft[rightValue] }
         set(leftValue) {
             defer { _invariantCheck() }
 
-            guard _rtl[rightValue] != leftValue else { return }
+            guard _rightLeft[rightValue] != leftValue else { return }
 
             guard let leftValue else {
-                guard let existingLeft = _rtl.removeValue(forKey: rightValue) else { return }
-                _ltr.removeValue(forKey: existingLeft)
+                guard let existingLeft = _rightLeft.removeValue(forKey: rightValue) else { return }
+                _leftRight.removeValue(forKey: existingLeft)
                 return
             }
 
-            if let replacedRight = _ltr.updateValue(rightValue, forKey: leftValue), replacedRight != rightValue {
-                _rtl.removeValue(forKey: replacedRight)
+            if let replacedRight = _leftRight.updateValue(rightValue, forKey: leftValue), replacedRight != rightValue {
+                _rightLeft.removeValue(forKey: replacedRight)
             }
 
-            if let replacedLeft = _rtl.updateValue(leftValue, forKey: rightValue), replacedLeft != leftValue {
-                _ltr.removeValue(forKey: replacedLeft)
+            if let replacedLeft = _rightLeft.updateValue(leftValue, forKey: rightValue), replacedLeft != leftValue {
+                _leftRight.removeValue(forKey: replacedLeft)
             }
         }
     }
 
+    @_disfavoredOverload
     @inlinable
     public subscript(_ rightValue: Right) -> Left? {
         get { self[right: rightValue] }
@@ -204,6 +199,7 @@ public struct BidirectionalDictionary<Left: Hashable, Right: Hashable>: Expressi
         set { self[right: rightValue] = newValue }
     }
 
+    @_disfavoredOverload
     @inlinable
     public subscript(_ rightValue: Right, default defaultValue: @autoclosure () -> Left) -> Left {
         get { self[right: rightValue] ?? defaultValue() }
@@ -212,20 +208,20 @@ public struct BidirectionalDictionary<Left: Hashable, Right: Hashable>: Expressi
 
     @inlinable
     public func element(forLeft leftValue: Left) -> Element? {
-        guard let rightValue = _ltr[leftValue] else { return nil }
+        guard let rightValue = _leftRight[leftValue] else { return nil }
         return (left: leftValue, right: rightValue)
     }
 
     @inlinable
     public func element(forRight rightValue: Right) -> Element? {
-        guard let leftValue = _rtl[rightValue] else { return nil }
+        guard let leftValue = _rightLeft[rightValue] else { return nil }
         return (left: leftValue, right: rightValue)
     }
 
     /// A bidirectional dictionary with the left and right values interchanged.
     @inlinable
     public var inverse: BidirectionalDictionary<Right, Left> {
-        .init(_ltr: _rtl, _rtl: _ltr)
+        .init(_leftRight: _rightLeft, _rightLeft: _leftRight)
     }
 
     public typealias LeftValues = Dictionary<Left, Right>.Keys
@@ -233,28 +229,28 @@ public struct BidirectionalDictionary<Left: Hashable, Right: Hashable>: Expressi
 
     @inlinable
     public var leftValues: LeftValues {
-        _ltr.keys
+        _leftRight.keys
     }
 
     @inlinable
     public var rightValues: RightValues {
-        _ltr.values
+        _leftRight.values
     }
     
     @inlinable public var leftRight: [Left: Right] {
-        _ltr
+        _leftRight
     }
 
     @inlinable public var rightLeft: [Right: Left] {
-        _rtl
+        _rightLeft
     }
     
     public var description: String {
-        _ltr.description
+        _leftRight.description
     }
     
     public var debugDescription: String {
-        _ltr.debugDescription
+        _leftRight.debugDescription
     }
 }
 
@@ -266,67 +262,67 @@ extension BidirectionalDictionary: Collection {
 
     public struct Index: Comparable {
         @usableFromInline
-        internal let _ltrIndex: Dictionary<Left, Right>.Index
+        let _leftRightIndex: Dictionary<Left, Right>.Index
 
         @usableFromInline
-        internal init(_ ltrIndex: Dictionary<Left, Right>.Index) {
-            self._ltrIndex = ltrIndex
+        init(_ ltrIndex: Dictionary<Left, Right>.Index) {
+            self._leftRightIndex = ltrIndex
         }
 
         @inlinable
         public static func < (lhs: Self, rhs: Self) -> Bool {
-            lhs._ltrIndex < rhs._ltrIndex
+            lhs._leftRightIndex < rhs._leftRightIndex
         }
     }
 
     @inlinable
     public var startIndex: Index {
-        Index(_ltr.startIndex)
+        Index(_leftRight.startIndex)
     }
 
     @inlinable
     public var endIndex: Index {
-        Index(_ltr.endIndex)
+        Index(_leftRight.endIndex)
     }
 
     @inlinable
     public subscript(position: Index) -> Element {
-        let element = _ltr[position._ltrIndex]
+        let element = _leftRight[position._leftRightIndex]
         return (left: element.key, right: element.value)
     }
 
     @inlinable
     public func index(after i: Index) -> Index {
-        Index(_ltr.index(after: i._ltrIndex))
+        Index(_leftRight.index(after: i._leftRightIndex))
     }
 
     @inlinable
     public func index(of element: Element) -> Index? {
-        guard let index = _ltr.index(forKey: element.left), _ltr[index].value == element.right else { return nil }
+        guard let index = _leftRight.index(forKey: element.left), _leftRight[index].value == element.right else { return nil }
         return Index(index)
     }
 
     @inlinable
     public func index(forLeft leftValue: Left) -> Index? {
-        _ltr.index(forKey: leftValue).map(Index.init)
+        _leftRight.index(forKey: leftValue).map(Index.init)
     }
 
     @inlinable
     public func index(forRight rightValue: Right) -> Index? {
-        guard let leftValue = _rtl[rightValue] else { return nil }
-        return _ltr.index(forKey: leftValue).map(Index.init)
+        guard let leftValue = _rightLeft[rightValue] else { return nil }
+        return _leftRight.index(forKey: leftValue).map(Index.init)
     }
 
     @inlinable
     public var isEmpty: Bool {
-        assert(_ltr.isEmpty == _rtl.isEmpty)
-        return _ltr.isEmpty
+        assert(_leftRight.isEmpty == _rightLeft.isEmpty)
+        return _leftRight.isEmpty
     }
 
     @inlinable
     public var count: Int {
-        assert(_ltr.count == _rtl.count)
-        return _ltr.count
+        assert(_leftRight.count == _rightLeft.count)
+        return _leftRight.count
     }
 }
 
@@ -336,23 +332,23 @@ extension BidirectionalDictionary: Collection {
 extension BidirectionalDictionary {
     public struct Iterator: IteratorProtocol {
         @usableFromInline
-        internal var _ltrIterator: Dictionary<Left, Right>.Iterator
+        var _leftRightIterator: Dictionary<Left, Right>.Iterator
 
         @usableFromInline
-        internal init(_ ltrIterator: Dictionary<Left, Right>.Iterator) {
-            self._ltrIterator = ltrIterator
+        init(_ ltrIterator: Dictionary<Left, Right>.Iterator) {
+            self._leftRightIterator = ltrIterator
         }
 
         @inlinable
         public mutating func next() -> Element? {
-            guard let element = _ltrIterator.next() else { return nil }
+            guard let element = _leftRightIterator.next() else { return nil }
             return (left: element.key, right: element.value)
         }
     }
 
     @inlinable
     public func makeIterator() -> Iterator {
-        Iterator(_ltr.makeIterator())
+        Iterator(_leftRight.makeIterator())
     }
 }
 
@@ -364,7 +360,7 @@ extension BidirectionalDictionary.Index: Sendable where Left: Sendable, Right: S
 
 extension BidirectionalDictionary: Encodable where Left: Encodable, Right: Encodable {
     public func encode(to encoder: any Encoder) throws {
-        try encoder.encodeSingle(_ltr)
+        try encoder.encodeSingle(_leftRight)
     }
 }
 
@@ -390,7 +386,7 @@ extension BidirectionalDictionary: Decodable where Left: Decodable, Right: Decod
 public extension Dictionary {
     @inlinable
     init(_ bidirectionalDictionary: BidirectionalDictionary<Key, Value>) where Value: Hashable {
-        self = bidirectionalDictionary._ltr
+        self = bidirectionalDictionary._leftRight
     }
 }
 
@@ -400,23 +396,23 @@ public extension Dictionary {
 extension BidirectionalDictionary: Hashable {
     @inlinable
     public static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs._ltr == rhs._ltr
+        lhs._leftRight == rhs._leftRight
     }
 
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(_ltr)
+        hasher.combine(_leftRight)
     }
 }
 
 public extension BidirectionalDictionary {
     @inlinable
     static func == (lhs: Self, rhs: [Left: Right]) -> Bool {
-        lhs._ltr == rhs
+        lhs._leftRight == rhs
     }
 
     @inlinable
     static func == (lhs: [Left: Right], rhs: Self) -> Bool {
-        lhs == rhs._ltr
+        lhs == rhs._leftRight
     }
 }
 
@@ -431,7 +427,7 @@ extension BidirectionalDictionary: SendableMetatype {}
 
 extension BidirectionalDictionary: CustomReflectable {
     public var customMirror: Mirror {
-        _ltr.customMirror
+        _leftRight.customMirror
     }
 }
 
@@ -485,23 +481,51 @@ public final class _BidirectionalDictionary<Left: Hashable, Right: Hashable>: NS
 extension BidirectionalDictionary {
     #if DEBUG
         @usableFromInline @inline(never)
-        internal func _invariantCheck() {
-            assert(_ltr.count == _rtl.count, "Internal dictionaries should always have same count after update.")
-            for (leftKey, leftValue) in _ltr {
+        func _invariantCheck() {
+            assert(_leftRight.count == _rightLeft.count, "Internal dictionaries should always have same count after update.")
+            for (leftKey, leftValue) in _leftRight {
                 assert(
-                    _rtl[leftValue] == leftKey,
+                    _rightLeft[leftValue] == leftKey,
                     "Internal dictionaries should have same key value pairs after update."
                 )
             }
-            for (rightKey, rightValue) in _rtl {
+            for (rightKey, rightValue) in _rightLeft {
                 assert(
-                    _ltr[rightValue] == rightKey,
+                    _leftRight[rightValue] == rightKey,
                     "Internal dictionaries should have same key value pairs after update."
                 )
             }
         }
     #else
         @inlinable @inline(__always)
-        internal func _invariantCheck() {}
+        func _invariantCheck() {}
     #endif
+}
+
+public extension BidirectionalDictionary {
+    /// Merges the specified elements, combining values associated with duplicate left keys.
+    @inlinable
+    mutating func merge<S: Sequence, E: Error>(
+        _ other: S,
+        uniquingKeysWith combine: (Right, Right) throws(E) -> Right
+    ) throws(E) where S.Element == Element {
+        for (left, right) in other {
+            if let existing = self[left: left] {
+                self[left: left] = try combine(existing, right)
+            } else {
+                self[left: left] = right
+            }
+        }
+    }
+
+    /// Returns a dictionary by merging the specified elements, combining values associated with duplicate left keys.
+    @inlinable
+    func merging<S: Sequence, E: Error>(
+        _ other: S,
+        uniquingKeysWith combine: (Right, Right) throws(E) -> Right
+    ) throws(E) -> Self where S.Element == Element {
+        var result = self
+        try result.merge(other, uniquingKeysWith: combine)
+        return result
+    }
 }

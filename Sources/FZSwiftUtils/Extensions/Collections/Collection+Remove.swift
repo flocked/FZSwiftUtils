@@ -7,6 +7,30 @@
 
 import Foundation
 
+public extension Collection {
+    func firstIndexes(_ maxAmount: Int, of element: Element) -> [Index] where Element: Equatable {
+        guard maxAmount > 0 else { return [] }
+        return firstIndexes(maxAmount, where: { $0 == element })
+    }
+    
+    func firstIndexes(_ maxAmount: Int, where isIncluded: (Element) throws -> Bool) rethrows -> [Index] {
+        guard maxAmount > 0 else { return [] }
+        return try Array(indices.lazy.filter({ try isIncluded(self[$0]) }).prefix(maxAmount))
+    }
+
+    func lastIndexes(_ maxAmount: Int, where isIncluded: (Element) throws -> Bool) rethrows -> [Index] {
+        guard maxAmount > 0 else { return [] }
+        return try Array(indices.reversed().lazy.filter({ try isIncluded(self[$0]) }).prefix(maxAmount)).reversed()
+    }
+}
+
+public extension BidirectionalCollection {
+    func lastIndexes(_ maxAmount: Int, where isIncluded: (Element) throws -> Bool) rethrows -> [Index] {
+        guard maxAmount > 0 else { return [] }
+        return try Array(indices.reversed().lazy.filter({ try isIncluded(self[$0]) }).prefix(maxAmount)).reversed()
+    }
+}
+
 public extension RangeReplaceableCollection {
     /**
      Removes and returns the first element of the collection.
@@ -153,7 +177,6 @@ public extension RangeReplaceableCollection {
     @discardableResult
     mutating func removeLast(_ amount: Int, where shouldBeRemoved: (Element) throws -> Bool) rethrows -> [Element] {
         guard amount > 0 else { return [] }
-
         var removed: [Element] = []
         var kept = Array(self)
         var count = 0
@@ -306,6 +329,10 @@ public extension RangeReplaceableCollection where Element: Equatable {
         return remove(at: index)
     }
     
+    mutating func removeAll(_ element: Element) -> [Element] {
+        removeAll(where: { $0 == element })
+    }
+            
     /**
      Removes the specificed elements and returns them.
 
@@ -315,7 +342,7 @@ public extension RangeReplaceableCollection where Element: Equatable {
     @_disfavoredOverload
     @discardableResult
     mutating func remove<S: Sequence<Element>>(_ elements: S) -> [Element] {
-        elements.compactMap({ remove($0) })
+        elements.uniqued().compactMap({ remove($0) })
     }
 }
 
@@ -332,11 +359,9 @@ public extension RangeReplaceableCollection where Element: Hashable {
         let targets = Set(elements)
         var removed: [Element] = []
         removeAll { element in
-            if targets.contains(element) {
-                removed.append(element)
-                return true
-            }
-            return false
+            guard targets.contains(element) else { return false }
+            removed.append(element)
+            return true
         }
         return removed
     }
@@ -363,7 +388,7 @@ public extension RangeReplaceableCollection where Element: AnyObject {
      */
     @discardableResult
     mutating func remove<S: Sequence<Element>>(_ elements: S) -> [Element] {
-        elements.compactMap({ remove($0) })
+        elements.uniqued().compactMap({ remove($0) })
     }
 }
 
@@ -379,13 +404,10 @@ public extension RangeReplaceableCollection {
     @discardableResult
     mutating func removeAll(where shouldBeRemoved: (Element) throws -> Bool) rethrows -> [Element] {
         var removed: [Element] = []
-        
-        try removeAll { element in
-            if try shouldBeRemoved(element) {
-                removed.append(element)
-                return true
-            }
-            return false
+        try removeAll {
+            guard try shouldBeRemoved($0) else { return false }
+            removed += $0
+            return true
         }
         return removed
     }

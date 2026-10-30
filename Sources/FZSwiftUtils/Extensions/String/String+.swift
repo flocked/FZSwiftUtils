@@ -1191,27 +1191,6 @@ public extension String {
     }
 }
 
-public extension String.StringInterpolation {
-    /// Appends the wrapped value if present, or the provided fallback string if the value is `nil.
-    mutating func appendInterpolation<T>(_ value: T?, or ifnil: @autoclosure () -> String) {
-        if let value = value {
-            appendInterpolation(value)
-        } else {
-            appendLiteral(ifnil())
-        }
-    }
-    
-    /// Appends the wrapped value if present, or the string `"nil"` if the value is `nil`.
-    mutating func appendInterpolation<T>(nil value: T?) {
-        appendInterpolation(value, or: "nil")
-    }
-    
-    /// Appends the wrapped value if present, or an empty string if the value is nil.
-    mutating func appendInterpolation<T>(empty value: T?) {
-        appendInterpolation(value, or: "")
-    }
-}
-
 public extension StringProtocol {
     /**
      Converts a camel-case string to snake-case.

@@ -152,9 +152,7 @@ public struct HierarchySequence<Element, Children: Collection>: Sequence where C
     }
 
     /// Returns a sequence that includes Elements matching the predicate or containing a matching descendant.
-    public func includingBranches(
-        matching predicate: @escaping (Element) -> Bool
-    ) -> Self {
+    public func includingBranches(matching predicate: @escaping (Element) -> Bool) -> Self {
         var sequence = self
         sequence.matchPredicate = predicate
         return sequence
@@ -166,7 +164,6 @@ public struct HierarchySequence<Element, Children: Collection>: Sequence where C
     }
 
     public struct Iterator: IteratorProtocol {
-
         /// The depth of the Element most recently returned by `next()`, where the root has a depth of `0`.
         public var depth: Int {
             indexPath.count
@@ -244,10 +241,10 @@ public struct HierarchySequence<Element, Children: Collection>: Sequence where C
         private var currentElement: Element?
         private var currentIndexPath = IndexPath()
 
-        // Depth-first state.
+        /// Depth-first state.
         private var frames: [Frame] = []
 
-        // Depth-first postorder state.
+        /// Depth-first postorder state.
         private var postorderFrames: [PostorderFrame] = []
 
         // Breadth-first state.
@@ -257,7 +254,7 @@ public struct HierarchySequence<Element, Children: Collection>: Sequence where C
         private var currentSiblingGroup: Int?
         private var skippedSiblingGroups: Set<Int> = []
 
-        // Filtering state.
+        /// Filtering state.
         private var matchCache: [IndexPath: Bool] = [:]
 
         // State applying to the Element most recently returned by next().
@@ -285,51 +282,26 @@ public struct HierarchySequence<Element, Children: Collection>: Sequence where C
                        let children = children(sequence.root),
                        !children.isEmpty
                     {
-                        frames.append(
-                            Frame(
-                                Element: sequence.root,
-                                indexPath: IndexPath(),
-                                iterator: makeChildIterator(children)
-                            )
-                        )
+                        frames += Frame(Element: sequence.root, indexPath: IndexPath(), iterator: makeChildIterator(children))
                     }
                 }
 
             case .depthFirstPostorder:
                 root = nil
 
-                postorderFrames.append(
-                    makePostorderFrame(
-                        Element: sequence.root,
-                        indexPath: IndexPath(),
-                        isIncluded: sequence.includingRoot
-                    )
-                )
+                postorderFrames += makePostorderFrame(Element: sequence.root, indexPath: IndexPath(), isIncluded: sequence.includingRoot)
 
             case .breadthFirst:
                 root = nil
 
                 if sequence.includingRoot {
-                    queue.append(
-                        QueuedElement(
-                            Element: sequence.root,
-                            indexPath: IndexPath(),
-                            depth: 0,
-                            ancestors: [],
-                            siblingGroup: nil
-                        )
-                    )
+                    queue += QueuedElement(Element: sequence.root, indexPath: IndexPath(), depth: 0, ancestors: [], siblingGroup: nil)
                 } else if maxDepth > 0,
                           maxChildrenPerElement > 0,
                           let children = children(sequence.root),
                           !children.isEmpty
                 {
-                    enqueue(
-                        children,
-                        parentIndexPath: IndexPath(),
-                        depth: 1,
-                        ancestors: [sequence.root]
-                    )
+                    enqueue(children, parentIndexPath: IndexPath(), depth: 1, ancestors: [sequence.root])
                 }
             }
         }
@@ -344,10 +316,8 @@ public struct HierarchySequence<Element, Children: Collection>: Sequence where C
             switch traversalOrder {
             case .depthFirst:
                 nextDepthFirst()
-
             case .depthFirstPostorder:
                 nextDepthFirstPostorder()
-
             case .breadthFirst:
                 nextBreadthFirst()
             }
@@ -362,10 +332,7 @@ public struct HierarchySequence<Element, Children: Collection>: Sequence where C
         public mutating func skipDescendants() {
             guard currentElement != nil,
                   traversalOrder != .depthFirstPostorder
-            else {
-                return
-            }
-
+            else { return }
             skipsDescendants = true
         }
 
@@ -384,10 +351,7 @@ public struct HierarchySequence<Element, Children: Collection>: Sequence where C
                 }
 
                 if !skipsDescendants {
-                    appendFrameIfNeeded(
-                        for: currentElement,
-                        at: currentIndexPath
-                    )
+                    appendFrameIfNeeded(for: currentElement, at: currentIndexPath)
                 }
 
                 resetCurrentElement()
@@ -398,11 +362,7 @@ public struct HierarchySequence<Element, Children: Collection>: Sequence where C
 
                 let rootIndexPath = IndexPath()
 
-                guard matches(
-                    root,
-                    at: rootIndexPath,
-                    depth: 0
-                ) else {
+                guard matches(root, at: rootIndexPath, depth: 0) else {
                     return nextDepthFirst()
                 }
 
@@ -416,17 +376,14 @@ public struct HierarchySequence<Element, Children: Collection>: Sequence where C
                     return root
                 }
 
-                appendFrameIfNeeded(
-                    for: root,
-                    at: rootIndexPath
-                )
+                appendFrameIfNeeded(for: root, at: rootIndexPath)
             }
 
             while !frames.isEmpty {
                 let frameIndex = frames.count - 1
 
                 if frames[frameIndex].skipsRemainingSiblings ||
-                   frames[frameIndex].index >= maxChildrenPerElement
+                    frames[frameIndex].index >= maxChildrenPerElement
                 {
                     frames.removeLast()
                     continue
@@ -443,19 +400,10 @@ public struct HierarchySequence<Element, Children: Collection>: Sequence where C
                 let childDepth = frames.count
                 let childIndexPath = frames[frameIndex].indexPath.appending(childIndex)
 
-                guard matches(
-                    Element,
-                    at: childIndexPath,
-                    depth: childDepth
-                ) else {
-                    continue
-                }
+                guard matches(Element, at: childIndexPath, depth: childDepth) else { continue }
 
                 if childDepth < minDepth {
-                    appendFrameIfNeeded(
-                        for: Element,
-                        at: childIndexPath
-                    )
+                    appendFrameIfNeeded(for: Element, at: childIndexPath)
                     continue
                 }
 
@@ -471,25 +419,14 @@ public struct HierarchySequence<Element, Children: Collection>: Sequence where C
             return nil
         }
 
-        private mutating func appendFrameIfNeeded(
-            for Element: Element,
-            at indexPath: IndexPath
-        ) {
+        private mutating func appendFrameIfNeeded(for Element: Element, at indexPath: IndexPath) {
             guard indexPath.count < maxDepth,
                   maxChildrenPerElement > 0,
                   let children = children(Element),
                   !children.isEmpty
-            else {
-                return
-            }
+            else { return }
 
-            frames.append(
-                Frame(
-                    Element: Element,
-                    indexPath: indexPath,
-                    iterator: makeChildIterator(children)
-                )
-            )
+            frames += Frame(Element: Element, indexPath: indexPath, iterator: makeChildIterator(children))
         }
 
         // MARK: - Depth-first postorder
@@ -499,9 +436,7 @@ public struct HierarchySequence<Element, Children: Collection>: Sequence where C
                 if skipsRemainingSiblings,
                    !postorderFrames.isEmpty
                 {
-                    postorderFrames[
-                        postorderFrames.count - 1
-                    ].skipsRemainingSiblings = true
+                    postorderFrames[postorderFrames.count - 1].skipsRemainingSiblings = true
                 }
 
                 resetCurrentElement()
@@ -520,24 +455,13 @@ public struct HierarchySequence<Element, Children: Collection>: Sequence where C
                         postorderFrames[frameIndex].iterator = iterator
                         postorderFrames[frameIndex].index += 1
 
-                        let childIndexPath =
-                            postorderFrames[frameIndex].indexPath.appending(childIndex)
+                        let childIndexPath = postorderFrames[frameIndex].indexPath.appending(childIndex)
 
-                        guard matches(
-                            child,
-                            at: childIndexPath,
-                            depth: childIndexPath.count
-                        ) else {
+                        guard matches(child, at: childIndexPath, depth: childIndexPath.count) else {
                             continue
                         }
 
-                        postorderFrames.append(
-                            makePostorderFrame(
-                                Element: child,
-                                indexPath: childIndexPath,
-                                isIncluded: true
-                            )
-                        )
+                        postorderFrames += makePostorderFrame(Element: child, indexPath: childIndexPath, isIncluded: true)
 
                         continue
                     }
@@ -549,14 +473,8 @@ public struct HierarchySequence<Element, Children: Collection>: Sequence where C
 
                 guard frame.isIncluded,
                       frame.indexPath.count >= minDepth,
-                      matches(
-                        frame.Element,
-                        at: frame.indexPath,
-                        depth: frame.indexPath.count
-                      )
-                else {
-                    continue
-                }
+                      matches(frame.Element, at: frame.indexPath, depth: frame.indexPath.count)
+                else { continue }
 
                 currentElement = frame.Element
                 currentIndexPath = frame.indexPath
@@ -684,11 +602,7 @@ public struct HierarchySequence<Element, Children: Collection>: Sequence where C
 
         // MARK: - Filtering
 
-        private mutating func matches(
-            _ Element: Element,
-            at indexPath: IndexPath,
-            depth: Int
-        ) -> Bool {
+        private mutating func matches(_ Element: Element, at indexPath: IndexPath, depth: Int) -> Bool {
             guard let matchPredicate else {
                 return true
             }
@@ -715,16 +629,10 @@ public struct HierarchySequence<Element, Children: Collection>: Sequence where C
             var iterator = makeChildIterator(children)
             var childIndex = 0
 
-            while childIndex < maxChildrenPerElement,
-                  let child = iterator.next()
-            {
+            while childIndex < maxChildrenPerElement, let child = iterator.next() {
                 let childIndexPath = indexPath.appending(childIndex)
 
-                if matches(
-                    child,
-                    at: childIndexPath,
-                    depth: depth + 1
-                ) {
+                if matches(child, at: childIndexPath, depth: depth + 1) {
                     matchCache[indexPath] = true
                     return true
                 }
@@ -749,37 +657,18 @@ public struct HierarchySequence<Element, Children: Collection>: Sequence where C
 
         // MARK: - Breadth-first queue
 
-        private mutating func enqueue(
-            _ children: Children,
-            parentIndexPath: IndexPath,
-            depth: Int,
-            ancestors: [Element]
-        ) {
+        private mutating func enqueue(_ children: Children, parentIndexPath: IndexPath, depth: Int, ancestors: [Element]) {
             let siblingGroup = nextSiblingGroup
             nextSiblingGroup += 1
 
             var iterator = makeChildIterator(children)
             var index = 0
 
-            while index < maxChildrenPerElement,
-                  let Element = iterator.next()
-            {
+            while index < maxChildrenPerElement, let Element = iterator.next() {
                 let indexPath = parentIndexPath.appending(index)
 
-                if matches(
-                    Element,
-                    at: indexPath,
-                    depth: depth
-                ) {
-                    queue.append(
-                        QueuedElement(
-                            Element: Element,
-                            indexPath: indexPath,
-                            depth: depth,
-                            ancestors: ancestors,
-                            siblingGroup: siblingGroup
-                        )
-                    )
+                if matches(Element, at: indexPath, depth: depth) {
+                    queue += QueuedElement(Element: Element, indexPath: indexPath, depth: depth, ancestors: ancestors, siblingGroup: siblingGroup)
                 }
 
                 index += 1
@@ -797,11 +686,8 @@ public struct HierarchySequence<Element, Children: Collection>: Sequence where C
         }
 
         private mutating func compactQueueIfNeeded() {
-            guard queueIndex > 1024,
-                  queueIndex > queue.count / 2
-            else {
-                return
-            }
+            guard queueIndex > 1024, queueIndex > queue.count / 2
+            else { return }
 
             queue.removeFirst(queueIndex)
             queueIndex = 0
@@ -828,7 +714,6 @@ public extension HierarchySequence {
         }
 
         public struct Iterator: IteratorProtocol {
-
             private var base: HierarchySequence.Iterator
 
             fileprivate init(base: HierarchySequence.Iterator) {

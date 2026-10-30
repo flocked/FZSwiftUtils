@@ -39,12 +39,33 @@ extension Collection {
 extension Collection where Element: Comparable {
     /// Returns the index of the minimum element in the collection or `nil` if the collection is empty.
     public var minIndex: Index? {
-        indexed().min { $0.element < $1.element }?.index
+        indexed().min(by: \.element)?.index
     }
     
     /// Returns the index of the maximum element in the collection or `nil` if the collection is empty.
     public var maxIndex: Index? {
-        indexed().max { $0.element < $1.element }?.index
+        indexed().max(by: \.element)?.index
+    }
+    
+    @warn_unqualified_access
+    func minIndex(by areInIncreasingOrder: (Element, Element) throws -> Bool) rethrows -> Index? {
+        try indexed().min(by: { try areInIncreasingOrder($0.element, $1.element) })?.index
+    }
+    
+    @inlinable
+    public func minIndex<Value: Comparable>(by value: (Element) -> Value) -> Index? {
+        indexed().min(by: { value($0.element) })?.index
+    }
+    
+    @inlinable
+    public func minIndex<Value: Comparable>(by value: (Element) -> Value?) -> Index? {
+        indexed().min(by: { value($0.element) })?.index
+    }
+    
+    /// Returns the element whose transformed value is the largest.
+    @inlinable
+    public func maxIndex<Value: Comparable>(by value: (Element) -> Value) -> Index? {
+        indexed().max(by: { value($0.element) })?.index
     }
 }
 
@@ -58,9 +79,27 @@ public struct IndexedCollection<Base: Collection> {
     internal init(base: Base) {
         self.base = base
     }
+    
+    public struct IndexedElement: CustomStringConvertible, CustomDebugStringConvertible {
+        let index: Base.Index
+        let element: Base.Element
+        
+        public var description: String {
+            "(\(index), \(element))"
+        }
+        
+        public var debugDescription: String {
+            "(\(reflecting: index), \(reflecting: element))"
+        }
+    }
 }
 
+extension IndexedCollection.IndexedElement: Equatable where Base.Element: Equatable { }
+extension IndexedCollection.IndexedElement: Hashable where Base.Index: Hashable, Base.Element: Hashable { }
+extension IndexedCollection.IndexedElement: Sendable where Base.Index: Sendable, Base.Element: Sendable { }
+
 extension IndexedCollection: Collection {
+    
     /// The element type for an `IndexedCollection` collection.
     public typealias Element = (index: Base.Index, element: Base.Element)
     
@@ -112,5 +151,8 @@ extension IndexedCollection: BidirectionalCollection where Base: BidirectionalCo
     }
 }
 
+extension IndexedCollection: Equatable where Base: Equatable { }
+extension IndexedCollection: Hashable where Base: Hashable { }
+extension IndexedCollection: Sendable where Base: Sendable { }
 extension IndexedCollection: RandomAccessCollection where Base: RandomAccessCollection { }
 extension IndexedCollection: LazySequenceProtocol, LazyCollectionProtocol where Base: LazySequenceProtocol { }

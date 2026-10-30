@@ -133,16 +133,44 @@ public extension SynchronizedDictionary {
         get { storage.read { $0[key] } }
         set { storage.write { $0[key] = newValue } }
     }
+    
+    /// Accesses the value associated with the given key, returning the given default value if the key isn't found.
+    subscript(key: Key, default defaultValue: () -> Value) -> Value {
+        get { storage.read { $0[key] ?? defaultValue() } }
+        set { storage.write { $0[key] = newValue } }
+    }
+    
+    /// Accesses the value associated with the given key, returning the given default value if the key isn't found.
+    subscript(key: Key, default defaultValue: @autoclosure () -> Value) -> Value {
+        get { storage.read { $0[key] ?? defaultValue() } }
+        set { storage.write { $0[key] = newValue } }
+    }
+    
+    ///Accesses the value associated with the given `key` if it exists, otherwise inserts and returns `initialValue`.
+    subscript(key: Key, initial initialValue: @autoclosure () -> Value) -> Value {
+        get {
+            if let value = self[key] { return value }
+            let value = initialValue()
+            storage.write ({ $0[key] = value })
+            return value
+        }
+        set { storage.write { $0[key] = newValue } }
+    }
+    
+    ///Accesses the value associated with the given `key` if it exists, otherwise inserts and returns `initialValue`.
+    subscript(key: Key, initial initialValue: () -> Value) -> Value {
+        get {
+            if let value = self[key] { return value }
+            let value = initialValue()
+            storage.write ({ $0[key] = value })
+            return value
+        }
+        set { storage.write { $0[key] = newValue } }
+    }
 
     /// Accesses the key-value pair at the specified position.
     subscript(index: Dictionary<Key, Value>.Index) -> Dictionary<Key, Value>.Element {
         storage.read { $0[index] }
-    }
-
-    /// Accesses the value associated with the given key, returning the given default value if the key isn't found.
-    subscript(key: Key, default defaultValue: @autoclosure () -> Value) -> Value {
-        get { storage.read { $0[key, default: defaultValue()] } }
-        set { storage.write { $0[key, default: defaultValue()] = newValue } }
     }
 
     /// Returns the index for the given key, or `nil` if the key isn't present in the dictionary.
@@ -254,3 +282,264 @@ extension SynchronizedDictionary: _ObjectiveCBridgeable {
         .init([Key: Value]._unconditionallyBridgeFromObjectiveC(source))
     }
 }
+
+public protocol DictionaryProtocol<Key, Value>: Collection {
+    associatedtype Value
+    associatedtype Key: Hashable
+    associatedtype Element = (key: Key, value: Value)
+    associatedtype Values: Collection<Value>
+    associatedtype Keys: Collection<Key>
+    subscript(key: Key) -> Value? { get set }
+    @discardableResult
+    mutating func updateValue(_ value: Value, forKey key: Key) -> Value?
+    @discardableResult
+    mutating func removeValue(forKey key: Key) -> Value?
+    init<S: Sequence<(Key, Value)>>(uniqueKeysWithValues keysAndValues: S)
+    init<S: Sequence<(Key, Value)>, E: Error>(_ keysAndValues: S, uniquingKeysWith combine: (Value, Value) throws(E) -> Value) throws(E)
+}
+
+public extension DictionaryProtocol {
+    /**
+     Accesses the value associated with the given `key` if it exists, otherwise inserts and returns `initialValue`.
+
+     - Parameters:
+        - key: The key to find in the dictionary.
+        - initialValue: The initial value that is evaluated if `key` is not already present.
+     */
+    subscript(key: Key, initial initialValue: () -> Value) -> Value {
+        mutating get {
+            if let value = self[key] {
+                return value
+            }
+            let value = initialValue()
+            self[key] = value
+            return value
+        }
+        set { self[key] = newValue }
+    }
+    
+    /**
+     Accesses the value associated with the given `key` if it exists, otherwise inserts and returns `initialValue`.
+
+     - Parameters:
+        - key: The key to find in the dictionary.
+        - initialValue: The initial value that is evaluated if `key` is not already present.
+     */
+    subscript(key: Key, initial initialValue: @autoclosure () -> Value) -> Value {
+        mutating get {
+            if let value = self[key] {
+                return value
+            }
+            let value = initialValue()
+            self[key] = value
+            return value
+        }
+        set { self[key] = newValue }
+    }
+    
+    /**
+     Accesses the value with the given key, falling back to the given default value if the key isn’t found.
+     
+     Use this subscript when you want either the value for a particular key or, when that key is not present in the dictionary, a default value.
+
+     - Parameters:
+        - key: The key the look up in the dictionary.
+        - defaultValue: The default value to use if key doesn’t exist in the dictionary.
+     - Returns: The value associated with key in the dictionary; otherwise, defaultValue.
+     */
+    subscript(key: Key, default defaultValue: () -> Value) -> Value {
+        get { self[key] ?? defaultValue() }
+        set { self[key] = newValue }
+    }
+    
+    /**
+     Accesses the value with the given key, falling back to the given default value if the key isn’t found.
+     
+     Use this subscript when you want either the value for a particular key or, when that key is not present in the dictionary, a default value.
+
+     - Parameters:
+        - key: The key the look up in the dictionary.
+        - defaultValue: The default value to use if key doesn’t exist in the dictionary.
+     - Returns: The value associated with key in the dictionary; otherwise, defaultValue.
+     */
+    subscript(key: Key, default defaultValue: @autoclosure () -> Value) -> Value {
+        get { self[key] ?? defaultValue() }
+        set { self[key] = newValue }
+    }
+    
+    /**
+     Updates the value stored in the dictionary for the given key, or adds a new key-value pair if the key does not exist.
+     
+     - Parameters:
+        - value: The new value to add to the dictionary, or `nil` to remove any current value for the key.
+        - key: The key to associate with `value`. If key already exists in the dictionary, `value` replaces the existing associated value. If `key` isn’t already a key of the dictionary, the `(key, value)` pair is added.
+     - Returns: The value that was replaced or removed, or `nil` if the key did not previously exist.
+     */
+    @discardableResult
+    @_disfavoredOverload
+    mutating func updateValue(_ value: Value?, forKey key: Key) -> Value? {
+        if let value = value {
+            return updateValue(value, forKey: key)
+        }
+        return removeValue(forKey: key)
+    }
+    
+    var elements: [Element] {
+        map { $0 }
+    }
+}
+
+public extension DictionaryProtocol where Value == Any {
+    /// Returns the value for the specified key cast to the requested type.
+    subscript<T>(typed key: Key) -> T? {
+        get {
+            guard let value = self[key] else { return nil }
+            guard let value = value as? T else {
+                log("Wrong type for key: \(key). Expected: \(T.self), got: \(type(of: value)).")
+                return nil
+            }
+            return value
+        }
+        set { self[key] = newValue }
+    }
+    
+    /**
+     Returns the value for the specified key after converting it using the specified strategy.
+
+     - Parameters:
+       - key: The key whose associated value to retrieve.
+       - strategy: A closure that converts the stored value to the requested type.
+     - Returns: The converted value, or `nil` if the key is missing or the conversion fails.
+     */
+    subscript<T>(typed key: Key, strategy strategy: (Any) -> T?) -> T? {
+        get { self[key].flatMap(strategy) }
+        set { self[key] = newValue }
+    }
+
+    /**
+     Returns the value for the specified key cast to the requested type, or the default value if the key is missing or is a different type.
+
+     - Parameters:
+       - key: The key whose associated value to retrieve.
+       - defaultValue: The value to return if the key is missing or the stored value cannot be cast to the requested type.
+     - Returns: The value cast to the requested type, or `defaultValue` if the key is missing or the cast fails.
+     */
+    subscript<T>(typed key: Key, default defaultValue: @autoclosure () -> T) -> T {
+        get { self[key] as? T ?? defaultValue() }
+        set { self[key] = newValue }
+    }
+    
+    /**
+     Returns the value for the specified key after converting it using the specified strategy, or the default value if the key is missing or the conversion fails.
+
+     - Parameters:
+       - key: The key whose associated value to retrieve.
+       - defaultValue: The value to return if the key is missing or the conversion fails.
+       - strategy: A closure that attempts to convert the stored value to the requested type.
+     - Returns: The converted value, or `defaultValue` if the key is missing or the strategy returns `nil`.
+     */
+    subscript<T>(typed key: Key, default defaultValue: @autoclosure () -> T, strategy strategy: (Any) -> T?) -> T {
+        get { self[typed: key, strategy: strategy] ?? defaultValue() }
+        set { self[key] = newValue }
+    }
+    
+    /**
+     Returns the value for the specified key cast to the requested type, or the default value if the key is missing or is a different type.
+
+     - Parameters:
+       - key: The key whose associated value to retrieve.
+       - defaultValue: The value to return if the key is missing or the stored value cannot be cast to the requested type.
+     - Returns: The value cast to the requested type, or `defaultValue` if the key is missing or the cast fails.
+     */
+    subscript<T>(typed key: Key, default defaultValue: () -> T) -> T {
+        get { (self[key] as? T) ?? defaultValue() }
+        set { self[key] = newValue }
+    }
+    
+    /**
+     Returns the value for the specified key after converting it using the specified strategy, or the default value if the key is missing or the conversion fails.
+
+     - Parameters:
+       - key: The key whose associated value to retrieve.
+       - defaultValue: The value to return if the key is missing or the conversion fails.
+       - strategy: A closure that attempts to convert the stored value to the requested type.
+     - Returns: The converted value, or `defaultValue` if the key is missing or the strategy returns `nil`.
+     */
+    subscript<T>(typed key: Key, default defaultValue: () -> T, strategy strategy: (Any) -> T?) -> T {
+        get { self[typed: key, strategy: strategy] ?? defaultValue() }
+        set { self[key] = newValue }
+    }
+    
+    /// Returns the value for the specified key cast to the requested type.
+    subscript<T>(typed key: Key) -> T? where T: RawRepresentable {
+        get {
+            guard let value = self[key] else { return nil }
+            if let value = value as? T { return value }
+            guard let rawValue = value as? T.RawValue, let value = T(rawValue: rawValue) else {
+                log("Wrong type for key: \(key). Expected: \(T.self), got: \(type(of: value)).")
+                return nil
+            }
+            return value
+        }
+    }
+    
+    /// Returns the value for the specified key as a date using the specified date formatter.
+    subscript(typed key: Key, using dateFormatter: DateFormatter) -> Date? {
+        guard let value = self[key] else { return nil }
+        if let date = value as? Date { return date }
+        guard let dateString = value as? String else {
+            log("Wrong type for key: \(key). Expected: \(Date.self), got: \(type(of: value)).")
+            return nil
+        }
+        guard let date = dateFormatter.date(from: dateString) else {
+            log("Wrong date string for key: \(key). Got: \(dateString).")
+            return nil
+        }
+        return date
+    }
+    
+    /**
+     Returns the value for the specified key decoded using the specified JSON decoder.
+
+     - Parameters:
+       - key: The key whose associated value to retrieve.
+       - jsonDecoder: The JSON decoder used to decode the stored data.
+     - Returns: The decoded value, or `nil` if the key is missing, the stored value is not `Data`, or decoding fails.
+     */
+    subscript<T: Decodable>(typed key: Key, using jsonDecoder: JSONDecoder) -> T? {
+        self[typed: key].flatMap( { try? jsonDecoder.decode($0) } )
+    }
+    
+    private func log(_ message: String) {
+        #if DEBUG
+        guard DictionaryDebug.isEnabled else { return }
+        Swift.print(message)
+        #endif
+    }
+}
+
+struct MatchingElements<Element, Other> {
+    let handler: (Element, Other) throws -> Bool
+    
+    init(handler: @escaping (_ element: Element, _ other: Other) throws -> Bool) {
+        self.handler = handler
+    }
+    
+    func compare<S1: Sequence<Element>, S2: Sequence<Other>>(_ seq1: S1, _ seq2: S2) throws -> Bool {
+        var iterator1 = seq1.makeIterator()
+        var iterator2 = seq2.makeIterator()
+        while let val1 = iterator1.next(), let val2 = iterator2.next() {
+            guard try handler(val1, val2) else {
+                return false
+            }
+        }
+        return true
+    }
+}
+
+extension MatchingElements where Element == Other, Element: Equatable {
+    static var isMNatching: Self {
+        Self { $0 == $1 }
+    }
+}
+

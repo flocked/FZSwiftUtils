@@ -8,29 +8,37 @@
 import Foundation
 
 /// A weak reference to an object.
-public final class Weak<Object: AnyObject>: Hashable, WeakReference {
+public final class Weak<Object: AnyObject>: Hashable, WeakReference, Identifiable, CustomStringConvertible, CustomDebugStringConvertible {
     /// The weakly stored object.
     public var object: Object? { weakObject }
     private weak var weakObject: Object?
-    /// The identifier of the object.
-    public let objectID: ObjectIdentifier
+    /// The identifier of the originally referenced object.
+    public let id: ObjectIdentifier
+    
+    public var description: String {
+        "Weak<\(Object.self)>(\(object.map { String(describing: $0) } ?? "nil"))"
+    }
+    
+    public var debugDescription: String {
+        "Weak<\(Object.self)>(\(object.map { String(reflecting: $0) } ?? "nil"), id: \(id))"
+    }
     
     /// Creates a weak reference to the specified object.
     public init(_ object: Object) {
         self.weakObject = object
-        self.objectID = ObjectIdentifier(object)
+        self.id = ObjectIdentifier(object)
     }
 
     public static func == (lhs: Weak, rhs: Weak) -> Bool {
-        lhs.objectID == rhs.objectID
+        lhs.id == rhs.id
     }
 
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(objectID)
+        hasher.combine(id)
     }
 }
 
-extension Weak: @unchecked Sendable where Object: Sendable {}
+extension Weak: @unchecked Sendable where Object: Sendable { }
 
 /// A weak reference to an object.
 public protocol WeakReference: Hashable {
@@ -39,7 +47,7 @@ public protocol WeakReference: Hashable {
     /// The weakly stored object.
     var object: Object? { get }
     /// The identifier of the object.
-    var objectID: ObjectIdentifier { get }
+    var id: ObjectIdentifier { get }
     /// Creates a weak reference to the specified object.
     init(_ object: Object)
 }
@@ -91,7 +99,7 @@ public extension Set where Element: WeakReference {
     @discardableResult
     mutating func insert(_ newMember: Element.Object) -> (inserted: Bool, memberAfterInsert: Element.Object) {
         let id = ObjectIdentifier(newMember)
-        if let oldMember = first(where: {$0.objectID == id})?.object {
+        if let oldMember = first(where: {$0.id == id})?.object {
             return (false, oldMember)
         }
         insert(Element(newMember))
@@ -116,7 +124,7 @@ public extension Set where Element: WeakReference {
     @discardableResult
     mutating func remove(_ member: Element.Object) -> Element.Object? {
         let id = ObjectIdentifier(member)
-        guard let reference = first(where: { $0.objectID == id }) else {
+        guard let reference = first(where: { $0.id == id }) else {
             return nil
         }
         remove(reference)
@@ -229,11 +237,11 @@ public extension Dictionary where Key: WeakReference {
     subscript(key: Key.Object) -> Value? {
         get {
             let id = ObjectIdentifier(key)
-            return first(where: {$0.key.objectID == id })?.value
+            return first(where: {$0.key.id == id })?.value
         }
         set {
             let id = ObjectIdentifier(key)
-            if let key = first(where: {$0.key.objectID == id })?.key {
+            if let key = first(where: {$0.key.id == id })?.key {
                 self[key] = newValue
             } else {
                 self[Key(key)] = newValue

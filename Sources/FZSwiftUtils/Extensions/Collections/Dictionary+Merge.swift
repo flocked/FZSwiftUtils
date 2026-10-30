@@ -159,7 +159,7 @@ public extension Dictionary {
      - Returns: A new dictionary with transformed keys and combined values for duplicates.
      */
     func mapKeys<T: Hashable>(_ transform: (Key) throws -> T, uniquingKeysWith combine: (Value, Value) throws -> Value) throws -> [T: Value] {
-        try Dictionary<T, Value>(lazy.map { (try transform($0.key), $0.value) }, uniquingKeysWith: combine)
+        try .init(lazy.map { (try transform($0.key), $0.value) }, uniquingKeysWith: combine)
     }
     
     /**
@@ -195,7 +195,7 @@ public extension Dictionary {
      - Returns: A new dictionary with transformed keys and combined values for duplicates.
      */
     func mapKeys<T: Hashable>(_ transform: (Key) -> T, uniquingKeysWith combine: (Value, Value) -> Value) -> [T: Value] {
-        Dictionary<T, Value>(map { (transform($0.key), $0.value) }, uniquingKeysWith: combine)
+        .init(map { (transform($0.key), $0.value) }, uniquingKeysWith: combine)
     }
 
     /**
@@ -219,7 +219,7 @@ public extension Dictionary {
      - Returns: A new dictionary with non-nil transformed keys and combined values for duplicates.
      */
     func compactMapKeys<T: Hashable>(_ transform: (Key) throws -> T?, uniquingKeysWith combine: (Value, Value) throws -> Value) throws -> [T: Value] {
-        try Dictionary<T, Value>(lazy.compactMap { element in try transform(element.key).map { ($0, element.value) } }, uniquingKeysWith: combine)
+        try .init(lazy.compactMap { element in try transform(element.key).map { ($0, element.value) } }, uniquingKeysWith: combine)
     }
     
     /**
@@ -255,7 +255,7 @@ public extension Dictionary {
      - Returns: A new dictionary with non-nil transformed keys and combined values for duplicates.
      */
     func compactMapKeys<T: Hashable>(_ transform: (Key) -> T?, uniquingKeysWith combine: (Value, Value) -> Value) -> [T: Value] {
-        Dictionary<T, Value>(compactMap { element in transform(element.key).map { ($0, element.value) } }, uniquingKeysWith: combine)
+        .init(compactMap { element in transform(element.key).map { ($0, element.value) } }, uniquingKeysWith: combine)
     }
     
     /**
@@ -279,7 +279,7 @@ public extension Dictionary {
      - Returns: A new dictionary with transformed keys and values, combining duplicates as specified.
      */
     func mapKeyValues<T: Hashable, U>(_ transform: (Element) -> (T, U), uniquingKeysWith combine: (U, U) -> U) -> [T: U] {
-        Dictionary<T, U>(lazy.map(transform), uniquingKeysWith: combine)
+        .init(lazy.map(transform), uniquingKeysWith: combine)
     }
 
     /**
@@ -303,7 +303,7 @@ public extension Dictionary {
      - Returns: A new dictionary with transformed keys and values, combining duplicates as specified.
      */
     func mapKeyValues<T: Hashable, U>(_ transform: (Element) throws -> (T, U), uniquingKeysWith combine: (U, U) throws -> U) throws -> [T: U] {
-        try Dictionary<T, U>(lazy.map(transform), uniquingKeysWith: combine)
+        try .init(lazy.map(transform), uniquingKeysWith: combine)
     }
     
     /**
@@ -339,7 +339,7 @@ public extension Dictionary {
      - Returns: A new dictionary containing the non-nil transformed key-value pairs, combining duplicates as specified.
      */
     func compactMapKeyValues<T: Hashable, U>(_ transform: (Element) throws -> (T, U)?, uniquingKeysWith combine: (U, U) throws -> U) throws -> [T: U] {
-        try Dictionary<T, U>(lazy.compactMap(transform), uniquingKeysWith: combine)
+        try .init(lazy.compactMap(transform), uniquingKeysWith: combine)
     }
     
     /**
@@ -375,7 +375,7 @@ public extension Dictionary {
      - Returns: A new dictionary containing the non-nil transformed key-value pairs, combining duplicates as specified.
      */
     func compactMapKeyValues<T: Hashable, U>(_ transform: (Element) -> (T, U)?, uniquingKeysWith combine: (U, U) -> U) -> [T: U] {
-        Dictionary<T, U>(lazy.compactMap(transform), uniquingKeysWith: combine)
+        .init(lazy.compactMap(transform), uniquingKeysWith: combine)
     }
 }
 

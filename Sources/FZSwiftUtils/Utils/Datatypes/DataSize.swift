@@ -1011,34 +1011,34 @@ public extension FormatStyle where Self == DataSizeFormatStyle {
     }
 }
 
-
-// MARK: - Attributed String Attribute
-
-/// A component of a formatted data size.
-public enum DataSizeFormatAttribute: Hashable {
-    /// The numeric value expressed in the selected unit.
-    case count(Double)
-    /// The unit used to express the data size.
-    case unit(DataSizeFormatStyle.Unit)
-    /// The exact byte count.
-    case actualByteCount(Int64)
-}
-
-/// An attributed string key that identifies a component of a formatted data size.
-public struct DataSizeAttribute: AttributedStringKey {
-    public typealias Value = DataSizeFormatAttribute
-    public static let name = "FZSwiftUtils.DataSizeAttribute"
-}
-
 public extension AttributeScopes {
     /// Attributes used for formatted data sizes.
-    struct DataSizeAttributes: AttributeScope {
-        /// The component of a formatted data size.
-        public let dataSize: DataSizeAttribute
-    }
+    var dataSize: DataSizeAttributes.Type { DataSizeAttributes.self }
     
     /// Attributes used for formatted data sizes.
-    var dataSize: DataSizeAttributes.Type { DataSizeAttributes.self }
+    struct DataSizeAttributes: AttributeScope {
+        /// The unit component of a formatted data size.
+        public let unit: Unit
+        /// The count component of a formatted data size.
+        public let count: Count
+        /// The byte count component of a formatted data size.
+        public let byteCount: ByteCount
+        
+        public struct Unit: AttributedStringKey {
+            public typealias Value = DataSizeFormatStyle.Unit
+            public static let name = "FZSwiftUtils.DataSizeAttributes.Unit"
+        }
+        
+        public struct Count: AttributedStringKey {
+            public typealias Value = Double
+            public static let name = "FZSwiftUtils.DataSizeAttributes.Count"
+        }
+        
+        public struct ByteCount: AttributedStringKey {
+            public typealias Value = Int64
+            public static let name = "FZSwiftUtils.DataSizeAttributes.ByteCount"
+        }
+    }
 }
 
 public extension AttributeDynamicLookup {
@@ -1230,76 +1230,67 @@ public extension DataSizeFormatStyle {
 
         /// Formats the specified data size as an attributed string.
         public func format(_ dataSize: DataSize) -> AttributedString {
-            var output = AttributedString(style.format(dataSize))
+             let bytes = Int64(dataSize.bytes)
+             let formatter = style.formatter(for: dataSize)
+             var output = AttributedString(formatter.string(fromByteCount:bytes))
             let unit = style.bestUnit(for: dataSize)
-            let unitSize = unit.size(for: dataSize.countStyle)
-            let value = Double(dataSize.bytes) / Double(unitSize)
-
+            
+            func setAttribute(for keyPath: ReferenceWritableKeyPath<ByteCountFormatter, Bool>, _ block: (_ range: Range<AttributedString.Index>)->()) {
+                formatter[keyPath: keyPath] = true
+                if let range = output.range(of: formatter.string(fromByteCount: bytes)) {
+                    block(range)
+                }
+                formatter[keyPath: keyPath] = false
+            }
+            
             if includesCount {
                 if style.useSpelloutZero, dataSize == .zero {
-                    if let zero = NumberFormatter.spellOut.locale(locale).formattingContext(.beginningOfSentence).string(for: 0)?.uppercasedFirst(with: locale),
-                       let range = output.range(of: zero) {
-                        output[range].dataSize = .count(value)
+                    let formatter = NumberFormatter.decimal.locale(locale)
+                    if let zero = formatter.string(for: 0), let spelledOutZero = formatter.style(.spellOut).formattingContext(.beginningOfSentence).string(for: 0)?.uppercasedFirst(with: locale), let range = output.range(of: zero) {
+                        let unitSize = unit.size(for: dataSize.countStyle)
+                        let count = Double(dataSize.bytes) / Double(unitSize)
+                        output.replaceSubrange(range, with: AttributedString(spelledOutZero) {
+                            $0.dataSize.count = count
+                        })
                     }
                 } else {
-                    let count = style.formattedCount(dataSize, unit: unit)
-                    
-                    if let range = output.range(of: count) {
-                        output[range].dataSize = .count(value)
+                    setAttribute(for: \.includesCount) {
+                        let unitSize = unit.size(for: dataSize.countStyle)
+                        let count = Double(dataSize.bytes) / Double(unitSize)
+                        output[$0].dataSize.count = count
                     }
                 }
             }
-
             if unitStyle != .none {
-                let unitString = style.formattedUnit(dataSize, unit: unit)
-                
-                if let range = output.range(of: unitString) {
-                    output[range].dataSize = .unit(unit)
+                setAttribute(for: \.includesUnit) {
+                    output[$0].dataSize.unit = unit
                 }
             }
-
             if includesActualByteCount {
-                let actualByteCount = style.formattedActualByteCount(dataSize)
-                
-                if let range = output.range(of: actualByteCount) {
-                    output[range].dataSize = .actualByteCount(Int64(dataSize.bytes))
+                setAttribute(for: \.includesActualByteCount) {
+                    output[$0].dataSize.byteCount = bytes
                 }
             }
-
             return output
         }
     }
 }
 
-
 // MARK: - Attributed Formatting Helpers
 
 private extension DataSizeFormatStyle {
-    func makeFormatter(for dataSize: DataSize, allowedUnits: Units, includesCount: Bool, includesUnit: Bool) -> ByteCountFormatter {
+    func makeFormatter(for dataSize: DataSize) -> ByteCountFormatter {
         let formatter = ByteCountFormatter()
         formatter.spellsOutZero = false
+        formatter.includesUnit = false
+        formatter.includesCount = false
         formatter.allowedUnits = .init(rawValue: allowedUnits.rawValue)
         formatter.countStyle = .init(rawValue: dataSize.countStyle.rawValue) ?? .file
-        formatter.includesUnit = includesUnit
-        formatter.includesActualByteCount = false
         formatter.locale = locale
         formatter.isAdaptive = isAdaptive
-        formatter.includesCount = includesCount
         formatter.unitStyle = unitStyle == .none ? .short : .init(rawValue: unitStyle.rawValue) ?? .short
         formatter.zeroPadsFractionDigits = zeroPadsFractionDigits
         return formatter
-    }
-    
-    func formattedCount(_ dataSize: DataSize, unit: Unit) -> String {
-        makeFormatter(for: dataSize, allowedUnits: Units(rawValue: unit.rawValue), includesCount: true, includesUnit: false).string(fromByteCount: Int64(dataSize.bytes))
-    }
-    
-    func formattedUnit(_ dataSize: DataSize, unit: Unit) -> String {
-        makeFormatter(for: dataSize, allowedUnits: Units(rawValue: unit.rawValue), includesCount: false, includesUnit: true).string(fromByteCount: Int64(dataSize.bytes))
-    }
-    
-    func formattedActualByteCount(_ dataSize: DataSize) -> String {
-        makeFormatter(for: dataSize, allowedUnits: .bytes, includesCount: true, includesUnit: true).string(fromByteCount: Int64(dataSize.bytes))
     }
 }
 
@@ -1389,20 +1380,15 @@ extension DataSizeFormatStyle {
         
         for (index, maxSize) in size.countStyle.maxSizes.enumerated() {
             guard index < Unit.allCases.count else { break }
-            
             let unit = Unit.allCases[index]
-            
             guard allowedUnits.contains(Units(rawValue: unit.rawValue)) else {
                 continue
             }
-            
             bestUnit = unit
-            
             if size.bytes <= maxSize {
                 break
             }
         }
-        
         return bestUnit
     }
 }
@@ -1447,6 +1433,35 @@ extension DataSizeFormatStyle.Unit {
 
 class DataSizeFormatter: Formatter {
     private let formatter = ByteCountFormatter()
+    
+    public var outputFormat: OutputFormat = [.unit, .count] {
+        didSet {
+            guard oldValue != outputFormat else { return }
+            formatter.includesUnit = outputFormat.contains(.unit)
+            formatter.includesCount = outputFormat.contains(.count)
+            formatter.includesActualByteCount = outputFormat.contains(.byteCount)
+        }
+    }
+    
+    public struct OutputFormat: OptionSet, Hashable, Sendable, Codable {
+        public let rawValue: UInt8
+        
+        public init(rawValue: UInt8) {
+            self.rawValue = rawValue
+        }
+        
+        public static let unit = Self(rawValue: 0 << 0)
+        public static let count = Self(rawValue: 0 << 1)
+        public static let byteCount = Self(rawValue: 0 << 2)
+    }
+    
+    
+    func string(from dataSize: DataSize, format: OutputFormat) -> String {
+        let current = outputFormat
+        outputFormat = format
+        defer { outputFormat = current }
+        return string(from: dataSize)
+    }
     
     public var countStyle: ByteCountFormatter.CountStyle {
         get { formatter.countStyle }
@@ -1506,6 +1521,9 @@ class DataSizeFormatter: Formatter {
         formatter.string(fromByteCount: Int64(dataSize.bytes))
     }
 }
+
+// AttributeScopes.FoundationAttributes.NumberFormatAttributes
+
 
 /*
  let formatter = ByteCountFormatter()

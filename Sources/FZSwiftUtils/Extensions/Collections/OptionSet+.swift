@@ -18,21 +18,15 @@ public extension OptionSet where RawValue: FixedWidthInteger, Element == Self {
         (rawValue & member.rawValue) != 0
     }
     
-    /// Returns an array of the elements included in the set.
-    func elements() -> [Element] {
-        Array(_elements())
-    }
-    
-    private func _elements() -> AnySequence<Element> {
-        var remainingBits = rawValue
-        return AnySequence {
-            AnyIterator {
-                guard remainingBits != 0 else { return nil }
-                let lowestBit = remainingBits & ~(remainingBits - 1)
-                remainingBits &= ~lowestBit
-                return Self(rawValue: lowestBit)
-            }
+    /// The individual options contained in the option set.
+    var elements: [Element] {
+        var bits = rawValue
+        var result: [Element] = Array(reserveCapacity: bits.nonzeroBitCount)
+        while bits != 0 {
+            result += Self(rawValue: bits & (~bits &+ 1))
+            bits &= bits &- 1
         }
+        return result
     }
 }
 

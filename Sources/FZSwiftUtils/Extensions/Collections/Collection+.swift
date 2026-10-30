@@ -7,6 +7,13 @@
 
 import Foundation
 
+public extension Collection {
+    /// The range of valid indices for the collection.
+    var indexRange: Range<Index> {
+        startIndex..<endIndex
+    }
+}
+
 public extension RangeReplaceableCollection {
     /// Creates an empty collection with preallocated space for at least the specified number of elements.
     init(reserveCapacity minimumCapacity: Int) {
@@ -97,18 +104,18 @@ public extension RangeReplaceableCollection {
 public extension MutableCollection {
     /// Edits each elements in the collection.
     mutating func editEach(_ transform: (_ element: inout Element) throws -> Void) rethrows {
-        try indices.forEach({ try transform(&self[$0]) })
+        try indices.forEach { try transform(&self[$0]) }
     }
     
     /// Edits each elements in the collection.
     mutating func editEach(_ transform: (_ index: Index, _ element: inout Element) throws -> Void) rethrows {
-        try indices.forEach({ try transform($0, &self[$0]) })
+        try indices.forEach { try transform($0, &self[$0]) }
     }
 }
 
-extension Collection {
+public extension Collection {
     /// Returns the collection, or `nil` if the collection is empty.
-    public var nilIfEmpty: Self? {
+    var nilIfEmpty: Self? {
         isEmpty ? nil : self
     }
     
@@ -117,7 +124,7 @@ extension Collection {
 
      - Parameter amount: The number of elements to return.
      */
-    public func first(_ amount: Int) -> SubSequence {
+    func first(_ amount: Int) -> SubSequence {
         guard !isEmpty, amount > 0 else { return dropFirst(count) }
         return dropLast(count - amount.clamped(max: count))
     }
@@ -127,7 +134,7 @@ extension Collection {
 
      - Parameter amount: The number of elements to return.
      */
-    public func last(_ amount: Int) -> SubSequence {
+    func last(_ amount: Int) -> SubSequence {
         guard !isEmpty, amount > 0 else { return dropFirst(count) }
         return dropFirst(count - amount.clamped(max: count))
     }
@@ -170,17 +177,17 @@ public extension RangeReplaceableCollection {
     }
     
     /// Adds the specified optional `Element`.
-    static func += <Other>(lhs: inout Self, rhs: Other?) where Other: Sequence<Element> {
+    static func += <Other: Sequence<Element>>(lhs: inout Self, rhs: Other?) {
         guard let rhs = rhs else { return }
         lhs += rhs
     }
     
-    static func + <Other>(lhs: Self, rhs: Other?) -> Self where Other: Sequence<Element> {
+    static func + <Other: Sequence<Element>>(lhs: Self, rhs: Other?) -> Self {
         guard let rhs = rhs else { return lhs }
         return lhs + rhs
     }
     
-    static func + <Other>(lhs: Other?, rhs: Self) -> Self where Other: Sequence<Element> {
+    static func + <Other: Sequence<Element>>(lhs: Other?, rhs: Self) -> Self {
         guard let lhs = lhs else { return rhs }
         return lhs + rhs
     }
@@ -219,13 +226,12 @@ public extension RangeReplaceableCollection {
      
      - Parameter newElements: The elements to prepend to the collection.
      */
-    mutating func prepend<S>(contentsOf newElements: S) where S : Collection<Element> {
+    mutating func prepend<S: Collection<Element>>(contentsOf newElements: S) {
         insert(contentsOf: newElements, at: startIndex)
     }
 }
 
 public extension RangeReplaceableCollection {
-
     /**
      Moves the element at the specified index to the specified position.
 
@@ -391,7 +397,7 @@ public extension RangeReplaceableCollection where Indices.Element == Int, Elemen
         - element: The element to replace.
         - newElements: The replacing elements.
      */
-    mutating func replace<C>(first element: Element, with newElements: C) where C: Collection, Element == C.Element {
+    mutating func replace<C: Collection>(first element: Element, with newElements: C) where Element == C.Element {
         if let index = firstIndex(of: element) {
             remove(at: index)
             insert(contentsOf: newElements, at: index)
@@ -405,7 +411,7 @@ public extension RangeReplaceableCollection where Indices.Element == Int, Elemen
         - element: The element to replace.
         - newElements: The replacing elements.
      */
-    mutating func replace<C>(_ element: Element, with newElements: C) where C: Collection, Element == C.Element {
+    mutating func replace<C: Collection>(_ element: Element, with newElements: C) where Element == C.Element {
         for index in indexes(of: element) {
             remove(at: index)
             insert(contentsOf: newElements, at: index)
@@ -479,7 +485,7 @@ public extension RangeReplaceableCollection where Element: Equatable {
         - newElements: The new elements to insert into the collection.
         - before: The element before which to insert the new elements.
      */
-    mutating func insert<C>(_ newElements: C, before: Element) where C: Collection<Element> {
+    mutating func insert<C: Collection<Element>>(_ newElements: C, before: Element) {
         guard let index = firstIndex(of: before) else { return }
         insert(contentsOf: newElements, at: index)
     }
@@ -493,13 +499,13 @@ public extension RangeReplaceableCollection where Element: Equatable {
         - newElements: The new elements to insert into the collection.
         - after: The element after which to insert the new elements.
      */
-    mutating func insert<C>(_ newElements: C, after: Element) where C: Collection<Element> {
+    mutating func insert<C: Collection<Element>>(_ newElements: C, after: Element) {
         guard let index = firstIndex(of: after) else { return }
         insert(contentsOf: newElements, at: self.index(after: index))
     }
 }
 
-extension Collection where Element: BinaryInteger {
+public extension Collection where Element: BinaryInteger {
     /**
      A Boolean value indicating whether the integers in the array are incrementing by the specified value.
      
@@ -507,14 +513,14 @@ extension Collection where Element: BinaryInteger {
         - value: The incrementing value.
         - sorted: A Boolean value indicating whether to check the integers in a sorted order.
      */
-    public func isIncrementing(by value: Element = 1, sorted: Bool = false) -> Bool {
+    func isIncrementing(by value: Element = 1, sorted: Bool = false) -> Bool {
         guard count > 1 else { return true }
         let elements = sorted ? self.sorted() : self as? Array ?? Array(self)
         return !elements.indices.dropFirst().contains { elements[$0] != elements[$0 - 1] + value }
     }
 }
 
-extension Collection where Self: RandomAccessCollection, Element: BinaryFloatingPoint {
+public extension Collection where Self: RandomAccessCollection, Element: BinaryFloatingPoint {
     /**
      A Boolean value indicating whether the elements in the array are incrementing by the specified value.
      
@@ -523,26 +529,26 @@ extension Collection where Self: RandomAccessCollection, Element: BinaryFloating
         - tolerance: The maximum allowed difference when comparing increments. Default is `0` (exact match).
         - sorted: A Boolean value indicating whether to check the elements in a sorted order.
      */
-    public func isIncrementing(by value: Element = 1, tolerance: Element = 0, sorted: Bool = false) -> Bool {
+    func isIncrementing(by value: Element = 1, tolerance: Element = 0, sorted: Bool = false) -> Bool {
         guard count > 1 else { return true }
         let elements = sorted ? self.sorted() : self as? Array ?? Array(self)
         return !elements.indices.dropFirst().contains { abs(elements[$0] - elements[elements.index(before: $0)] - value) > tolerance }
     }
 }
 
-extension Collection {
-    public func index(_ index: Index, offsetBy distance: Int = 1, loop: Bool) -> Index {
+public extension Collection {
+    func index(_ index: Index, offsetBy distance: Int = 1, loop: Bool) -> Index {
         guard !isEmpty else { return startIndex }
         let count = count
         var pos = self.distance(from: startIndex, to: index) + distance
         pos = loop
             ? (pos % count + count) % count
-        : Swift.min(Swift.max(pos, 0), count - 1)
+            : Swift.min(Swift.max(pos, 0), count - 1)
         return self.index(startIndex, offsetBy: pos)
     }
 }
 
-extension BidirectionalCollection {
+public extension BidirectionalCollection {
     /**
      Returns an index that is the specified distance from the given index.
      
@@ -552,13 +558,13 @@ extension BidirectionalCollection {
         - loop: A Boolean value indicating whether the offset wraps around the collection when the end or start is exceeded. If `false`, the index will clamp to the start and end index.
      i
      */
-    public func index(_ index: Index, offsetBy value: Int = 1, loop: Bool) -> Index {
+    func index(_ index: Index, offsetBy value: Int = 1, loop: Bool) -> Index {
         guard !isEmpty else { return startIndex }
         let count = self.count
         var pos = distance(from: startIndex, to: index) + value
         pos = loop
             ? (pos % count + count) % count
-        : Swift.min(Swift.max(pos, 0), count - 1)
+            : Swift.min(Swift.max(pos, 0), count - 1)
         return self.index(startIndex, offsetBy: pos)
     }
     
@@ -572,7 +578,7 @@ extension BidirectionalCollection {
        - count: The number of indices to return. Positive for forward, negative for backward.
        - loop: A Boolean value indicating whether to loop around the collection when reaching the start or end.
      */
-    public func indexes(from index: Index, offsetBy count: Int, loop: Bool = true) -> [Index] {
+    func indexes(from index: Index, offsetBy count: Int, loop: Bool = true) -> [Index] {
         guard !isEmpty, count != 0 else { return [] }
 
         let direction = count.signum()
@@ -625,7 +631,7 @@ public extension Collection where Element: AnyObject {
      - Returns: An array of the indexes of the elements.
      */
     @_disfavoredOverload
-    func indexes<S>(of elements: S) -> [Index] where S: Sequence<Element> {
+    func indexes<S: Sequence<Element>>(of elements: S) -> [Index] {
         elements.reduce(into: []) { $0 += firstIndex(of: $1) }
     }
     
@@ -637,7 +643,7 @@ public extension Collection where Element: AnyObject {
      - Returns: An array of the indexes of the elements.
      */
     @_disfavoredOverload
-    func indexes<S>(of elements: S) -> [Index] where S: Sequence<Element>, Self: RangeReplaceableCollection {
+    func indexes<S: Sequence<Element>>(of elements: S) -> [Index] where Self: RangeReplaceableCollection {
         var values = self
         return elements.reduce(into: []) {
             guard let index = values.firstIndex(of: $1) else { return }
@@ -902,230 +908,322 @@ public extension RangeReplaceableCollection {
 }
 
 public extension RangeReplaceableCollection {
-    /// Replaces the specified subrange of elements with the given collection.
-    mutating func replaceSubrange<C: Collection<Element>>(_ subrange: ClosedRange<Index>, with newElements: C) {
-        replaceSubrange(safe(subrange)!, with: newElements)
+    // MARK: - Replace Subrange
+    
+    /// Replaces the specified subrange of elements with the given collection and returns the replaced elements.
+    @_disfavoredOverload
+    mutating func replaceSubrange<C: Collection<Element>>(_ subrange: Range<Index>, with newElements: C) -> [Element] {
+        let old = Array(self[subrange])
+        replaceSubrange(subrange, with: newElements)
+        return old
     }
     
     /// Replaces the specified subrange of elements with the given collection.
-    mutating func replaceSubrange<C: Collection<Element>>(_ subrange: PartialRangeFrom<Index>, with newElements: C) {
-        replaceSubrange(safe(subrange)!, with: newElements)
+    @_disfavoredOverload
+    mutating func replaceSubrange<R: RangeExpression<Index>, C: Collection<Element>>(_ subrange: R, with newElements: C) {
+        replaceSubrange(subrange.relative(to: self), with: newElements)
     }
     
-    /// Replaces the specified subrange of elements with the given collection.
-    mutating func replaceSubrange<C: Collection<Element>>(_ subrange: PartialRangeThrough<Index>, with newElements: C) {
-        replaceSubrange(safe(subrange)!, with: newElements)
+    /// Replaces the specified subrange of elements with the given collection and returns the replaced elements.
+    @_disfavoredOverload
+    mutating func replaceSubrange<R: RangeExpression<Index>, C: Collection<Element>>(_ subrange: R, with newElements: C) -> [Element] {
+        replaceSubrange(subrange.relative(to: self), with: newElements)
     }
     
-    /// Replaces the specified subrange of elements with the given collection.
-    mutating func replaceSubrange<C: Collection<Element>>(_ subrange: PartialRangeUpTo<Index>, with newElements: C) {
-        replaceSubrange(safe(subrange)!, with: newElements)
+    // MARK: Safe
+    
+    /// Replaces the specified subrange of elements with the given collection if the subrange is valid.
+    mutating func replaceSubrange<C: Collection<Element>>(safe subrange: Range<Index>, with newElements: C) {
+        guard let subrange = subrange.relative(safe: self) else { return }
+        replaceSubrange(subrange, with: newElements)
     }
     
-    /// Replaces the specified subrange of elements with the given collection.
-    @discardableResult
-    mutating func replaceSubrange<C: Collection<Element>>(safe subrange: Range<Index>, with newElements: C) -> Bool {
-        guard let range = safe(subrange) else { return false }
-        replaceSubrange(range, with: newElements)
-        return true
+    /// Replaces the specified subrange of elements with the given collection if the subrange is valid and returns the replaced elements, or `nil` if the subrange is invalid.
+    @_disfavoredOverload
+    mutating func replaceSubrange<C: Collection<Element>>(safe subrange: Range<Index>, with newElements: C) -> [Element]? {
+        guard let subrange = subrange.relative(safe: self) else { return nil }
+        return replaceSubrange(subrange, with: newElements)
     }
     
-    /// Replaces the specified subrange of elements with the given collection.
-    @discardableResult
-    mutating func replaceSubrange<C: Collection<Element>>(safe subrange: ClosedRange<Index>, with newElements: C) -> Bool {
-        guard let range = safe(subrange) else { return false }
-        replaceSubrange(range, with: newElements)
-        return true
+    /// Replaces the specified subrange of elements with the given collection if the subrange is valid.
+    mutating func replaceSubrange<R: RangeExpression<Index>, C: Collection<Element>>(safe subrange: R, with newElements: C) {
+        guard let subrange = subrange.relative(safe: self) else { return }
+        replaceSubrange(subrange, with: newElements)
     }
     
-    /// Replaces the specified subrange of elements with the given collection.
-    @discardableResult
-    mutating func replaceSubrange<C: Collection<Element>>(safe subrange: PartialRangeFrom<Index>, with newElements: C) -> Bool {
-        guard let range = safe(subrange) else { return false }
-        replaceSubrange(range, with: newElements)
-        return true
+    /// Replaces the specified subrange of elements with the given collection if the subrange is valid and returns the replaced elements, or `nil` if the subrange is invalid.
+    @_disfavoredOverload
+    mutating func replaceSubrange<R: RangeExpression<Index>, C: Collection<Element>>(safe subrange: R, with newElements: C) -> [Element]? {
+        guard let subrange = subrange.relative(safe: self) else { return nil }
+        return replaceSubrange(subrange, with: newElements)
     }
     
-    /// Replaces the specified subrange of elements with the given collection.
-    @discardableResult
-    mutating func replaceSubrange<C: Collection<Element>>(safe subrange: PartialRangeThrough<Index>, with newElements: C) -> Bool {
-        guard let range = safe(subrange) else { return false }
-        replaceSubrange(range, with: newElements)
-        return true
-    }
+    // MARK: Clamped
     
-    /// Replaces the specified subrange of elements with the given collection.
-    @discardableResult
-    mutating func replaceSubrange<C: Collection<Element>>(safe subrange: PartialRangeUpTo<Index>, with newElements: C) -> Bool {
-        guard let range = safe(subrange) else { return false }
-        replaceSubrange(range, with: newElements)
-        return true
-    }
-    
-    /// Replaces the specified subrange of elements with the given collection.
+    /// Replaces the specified subrange of elements with the given collection after clamping the subrange to the collection's bounds.
     mutating func replaceSubrange<C: Collection<Element>>(clamped subrange: Range<Index>, with newElements: C) {
-        replaceSubrange(clamp(subrange), with: newElements)
+        replaceSubrange(subrange.relative(clampedTo: self), with: newElements)
     }
     
-    /// Replaces the specified subrange of elements with the given collection.
-    mutating func replaceSubrange<C: Collection<Element>>(clamped subrange: ClosedRange<Index>, with newElements: C) {
-        replaceSubrange(clamp(subrange), with: newElements)
+    /// Replaces the specified subrange of elements with the given collection after clamping the subrange to the collection's bounds and returns the replaced elements.
+    @_disfavoredOverload
+    mutating func replaceSubrange<C: Collection<Element>>(clamped subrange: Range<Index>, with newElements: C) -> [Element] {
+        replaceSubrange(subrange.relative(clampedTo: self), with: newElements)
     }
     
-    /// Replaces the specified subrange of elements with the given collection.
-    mutating func replaceSubrange<C: Collection<Element>>(clamped subrange: PartialRangeFrom<Index>, with newElements: C) {
-        replaceSubrange(clamp(subrange), with: newElements)
+    /// Replaces the specified subrange of elements with the given collection after clamping the subrange to the collection's bounds.
+    mutating func replaceSubrange<R: RangeExpression<Index>, C: Collection<Element>>(clamped subrange: R, with newElements: C) {
+        replaceSubrange(subrange.relative(clampedTo: self), with: newElements)
     }
     
-    /// Replaces the specified subrange of elements with the given collection.
-    mutating func replaceSubrange<C: Collection<Element>>(clamped subrange: PartialRangeThrough<Index>, with newElements: C) {
-        replaceSubrange(clamp(subrange), with: newElements)
+    /// Replaces the specified subrange of elements with the given collection after clamping the subrange to the collection's bounds and returns the replaced elements.
+    @_disfavoredOverload
+    mutating func replaceSubrange<R: RangeExpression<Index>, C: Collection<Element>>(clamped subrange: R, with newElements: C) -> [Element] {
+        replaceSubrange(subrange.relative(clampedTo: self), with: newElements)
     }
     
-    /// Replaces the specified subrange of elements with the given collection.
-    mutating func replaceSubrange<C: Collection<Element>>(clamped subrange: PartialRangeUpTo<Index>, with newElements: C) {
-        replaceSubrange(clamp(subrange), with: newElements)
-    }
+    // MARK: - Remove Subrange
     
-    /// Removes the specified subrange of elements from the collection.
-    mutating func removeSubrange(_ bounds: ClosedRange<Index>) {
-        removeSubrange(safe(bounds)!)
-    }
-    
-    /// Removes the specified subrange of elements from the collection.
-    mutating func removeSubrange(_ bounds: PartialRangeFrom<Index>) {
-        removeSubrange(safe(bounds)!)
+    /// Removes the specified subrange of elements from the collection and returns the removed elements.
+    @_disfavoredOverload
+    mutating func removeSubrange(_ bounds: Range<Index>) -> [Element] {
+        let removed = Array(self[bounds])
+        removeSubrange(bounds)
+        return removed
     }
     
     /// Removes the specified subrange of elements from the collection.
-    mutating func removeSubrange(_ bounds: PartialRangeThrough<Index>) {
-        removeSubrange(safe(bounds)!)
+    mutating func removeSubrange<R: RangeExpression<Index>>(_ bounds: R) {
+        removeSubrange(bounds.relative(to: self))
     }
     
-    /// Removes the specified subrange of elements from the collection.
-    mutating func removeSubrange(_ bounds: PartialRangeUpTo<Index>) {
-        removeSubrange(safe(bounds)!)
+    /// Removes the specified subrange of elements from the collection and returns the removed elements.
+    @_disfavoredOverload
+    mutating func removeSubrange<R: RangeExpression<Index>>(_ bounds: R) -> [Element] {
+        removeSubrange(bounds.relative(to: self))
     }
     
-    /// Removes the specified subrange of elements from the collection.
+    // MARK: Safe
+    
+    /// Removes the specified subrange of elements if the subrange is valid.
+    mutating func removeSubrange(safe bounds: Range<Index>) {
+        guard let bounds = bounds.relative(safe: self) else { return }
+        removeSubrange(bounds)
+    }
+    
+    /// Removes the specified subrange of elements if the subrange is valid and returns the removed elements, or `nil` if the subrange is invalid.
+    @_disfavoredOverload
+    mutating func removeSubrange(safe bounds: Range<Index>) -> [Element]? {
+        guard let bounds = bounds.relative(safe: self)else { return nil }
+        return removeSubrange(bounds)
+    }
+    
+    /// Removes the specified subrange of elements if the subrange is valid.
+    mutating func removeSubrange<R: RangeExpression<Index>>(safe bounds: R) {
+        guard let bounds = bounds.relative(safe: self) else { return }
+        removeSubrange(bounds)
+    }
+    
+    /// Removes the specified subrange of elements if the subrange is valid and returns the removed elements, or `nil` if the subrange is invalid.
+    @_disfavoredOverload
+    mutating func removeSubrange<R: RangeExpression<Index>>(safe bounds: R) -> [Element]? {
+        guard let bounds = bounds.relative(safe: self) else { return nil }
+        return removeSubrange(bounds)
+    }
+    
+    // MARK: Clamped
+    
+    /// Removes the specified subrange of elements after clamping the subrange to the collection's bounds.
     mutating func removeSubrange(clamped bounds: Range<Index>) {
-        removeSubrange(clamp(bounds))
+        removeSubrange(bounds.relative(clampedTo: self))
     }
     
-    /// Removes the specified subrange of elements from the collection.
-    mutating func removeSubrange(clamped bounds: ClosedRange<Index>) {
-        removeSubrange(clamp(bounds))
+    /// Removes the specified subrange of elements after clamping the subrange to the collection's bounds and returns the removed elements.
+    @_disfavoredOverload
+    mutating func removeSubrange(clamped bounds: Range<Index>) -> [Element] {
+        removeSubrange(bounds.relative(clampedTo: self))
     }
     
-    /// Removes the specified subrange of elements from the collection.
-    mutating func removeSubrange(clamped bounds: PartialRangeFrom<Index>) {
-        removeSubrange(clamp(bounds))
+    /// Removes the specified subrange of elements after clamping the subrange to the collection's bounds.
+    mutating func removeSubrange<R: RangeExpression<Index>>(clamped bounds: R) {
+        removeSubrange(bounds.relative(clampedTo: self))
     }
     
-    /// Removes the specified subrange of elements from the collection.
-    mutating func removeSubrange(clamped bounds: PartialRangeThrough<Index>) {
-        removeSubrange(clamp(bounds))
+    /// Removes the specified subrange of elements after clamping the subrange to the collection's bounds and returns the removed elements.
+    @_disfavoredOverload
+    mutating func removeSubrange<R: RangeExpression<Index>>(clamped bounds: R) -> [Element] {
+        removeSubrange(bounds.relative(clampedTo: self))
     }
     
-    /// Removes the specified subrange of elements from the collection.
-    mutating func removeSubrange(clamped bounds: PartialRangeUpTo<Index>) {
-        removeSubrange(clamp(bounds))
-    }
+    // MARK: - Remove Subranges
     
-    /// Removes the specified subrange of elements from the collection.
-    @discardableResult
-    mutating func removeSubrange(safe bounds: Range<Index>) -> Bool {
-        guard let bounds = safe(bounds) else { return false }
-        removeSubrange(bounds)
-        return true
-    }
-    
-    /// Removes the specified subrange of elements from the collection.
-    @discardableResult
-    mutating func removeSubrange(safe bounds: ClosedRange<Index>) -> Bool {
-        guard let bounds = safe(bounds) else { return false }
-        removeSubrange(bounds)
-        return true
-    }
-    
-    /// Removes the specified subrange of elements from the collection.
-    @discardableResult
-    mutating func removeSubrange(safe bounds: PartialRangeFrom<Index>) -> Bool {
-        guard let bounds = safe(bounds) else { return false }
-        removeSubrange(bounds)
-        return true
-    }
-    
-    /// Removes the specified subrange of elements from the collection.
-    @discardableResult
-    mutating func removeSubrange(safe bounds: PartialRangeThrough<Index>) -> Bool {
-        guard let bounds = safe(bounds) else { return false }
-        removeSubrange(bounds)
-        return true
-    }
-    
-    /// Removes the specified subrange of elements from the collection.
-    @discardableResult
-    mutating func removeSubrange(safe bounds: PartialRangeUpTo<Index>) -> Bool {
-        guard let bounds = safe(bounds) else { return false }
-        removeSubrange(bounds)
-        return true
-    }
-    
-    /// Removes the elements at the given indices.
+    /// Removes the elements at the given indices if all subranges are valid.
     @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
-    @discardableResult
-    mutating func removeSubranges(safe subranges: RangeSet<Index>) -> Bool {
-        guard subranges.ranges.allSatisfy({ safe($0) != nil }) else { return false }
+    mutating func removeSubranges(safe subranges: RangeSet<Index>) {
+        guard subranges.ranges.allSatisfy({ safe($0) != nil }) else { return }
         removeSubranges(subranges)
-        return true
     }
     
-    /// Removes the elements at the given indices.
+    /// Removes the elements at the given indices if all subranges are valid and returns the removed elements, or `nil` if any subrange is invalid.
+    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
+    @_disfavoredOverload
+    mutating func removeSubranges(safe subranges: RangeSet<Index>) -> [Element]? {
+        guard subranges.ranges.allSatisfy({ safe($0) != nil }) else { return nil }
+        let removed = subranges.ranges.flatMap { self[$0] }
+        removeSubranges(subranges)
+        return removed
+    }
+    
+    /// Removes the elements at the given indices after clamping the subranges to the collection's bounds.
     @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
     mutating func removeSubranges(clamped subranges: RangeSet<Index>) {
-        removeSubranges(RangeSet(subranges.ranges.map { clamp($0) }))
+        removeSubranges(subranges.relative(clampedTo: self))
     }
     
-    /// Replaces the element at the specified index and returns it.
-    @discardableResult
-    mutating func replace(at index: Index, with newElement: Element?) -> Element {
-        if let newElement {
-           return replace(at: index, with: CollectionOfOne(newElement))
-        } else {
-            return replace(at: index, with: EmptyCollection())
-        }
+    /// Removes the elements at the given indices after clamping the subranges to the collection's bounds and returns the removed elements.
+    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
+    @_disfavoredOverload
+    mutating func removeSubranges(clamped subranges: RangeSet<Index>) -> [Element] {
+        let subranges = subranges.relative(clampedTo: self)
+        let removed = subranges.ranges.compactMap({ self[safe: $0] }).flattened()
+        removeSubranges(subranges)
+        return removed
     }
     
-    /// Replaces the element at the specified index and returns it.
-    mutating func replace<S: Collection<Element>>(at index: Index, with newElements: S) -> Element {
-        let oldElement = self[index]
+    // MARK: - Replace Element
+    
+    /// Replaces the element at the specified index with the given elements.
+    mutating func replace<C: Collection<Element>>(at index: Index, with newElements: C) {
         replaceSubrange(index..<self.index(after: index), with: newElements)
-        return oldElement
     }
     
-    /// Replaces the element at the specified index and returns it.
-    @discardableResult
-    mutating func replace(safe index: Index, with newElement: Element?) -> Element? {
-        if let newElement {
-           return replace(safe: index, with: CollectionOfOne(newElement))
-        } else {
-            return replace(safe: index, with: EmptyCollection())
-        }
-    }
-    
-    /// Replaces the element at the specified index and returns it.
-    mutating func replace<S: Collection<Element>>(safe index: Index, with newElements: S) -> Element? {
-        guard let oldElement = self[safe: index] else { return nil }
+    /// Replaces the element at the specified index with the given elements and returns the replaced element.
+    @_disfavoredOverload
+    mutating func replace<C: Collection<Element>>(at index: Index, with newElements: C) -> Element {
+        let old = self[index]
         replaceSubrange(index..<self.index(after: index), with: newElements)
-        return oldElement
+        return old
     }
     
-    /// Removes and returns the element at the specified position.
-    @discardableResult
-    mutating func remove(safe index: Index) -> Element? {
-        guard indices.contains(index) else { return nil }
-        return remove(at: index)
+    /// Replaces the element at the specified index with the given elements if the index is valid.
+    mutating func replace<C: Collection<Element>>(safe index: Index, with newElements: C) {
+        guard let range = safeRange(index) else { return }
+        replaceSubrange(range, with: newElements)
+    }
+    
+    /// Replaces the element at the specified index with the given elements if the index is valid and returns the replaced element, or `nil` if the index is invalid.
+    @_disfavoredOverload
+    mutating func replace<C: Collection<Element>>(safe index: Index, with newElements: C) -> Element? {
+        guard let range = safeRange(index) else { return nil }
+        let old = self[index]
+        replaceSubrange(range, with: newElements)
+        return old
+    }
+
+    /*
+     /// Replaces the element at the specified index and returns it.
+     @discardableResult
+     mutating func replace(at index: Index, with newElement: Element?) -> Element {
+         if let newElement {
+             return replace(at: index, with: CollectionOfOne(newElement))
+         } else {
+             return replace(at: index, with: EmptyCollection())
+         }
+     }
+    
+     /// Replaces the element at the specified index and returns it.
+     mutating func replace<S: Collection<Element>>(at index: Index, with newElements: S) -> Element {
+         let oldElement = self[index]
+         replaceSubrange(index..<self.index(after: index), with: newElements)
+         return oldElement
+     }
+    
+     /// Replaces the element at the specified index and returns it.
+     @discardableResult
+     mutating func replace(safe index: Index, with newElement: Element?) -> Element? {
+         if let newElement {
+             return replace(safe: index, with: CollectionOfOne(newElement))
+         } else {
+             return replace(safe: index, with: EmptyCollection())
+         }
+     }
+    
+     /// Replaces the element at the specified index and returns it.
+     mutating func replace<S: Collection<Element>>(safe index: Index, with newElements: S) -> Element? {
+         guard let oldElement = self[safe: index] else { return nil }
+         replaceSubrange(index..<self.index(after: index), with: newElements)
+         return oldElement
+     }
+    
+     /// Removes and returns the element at the specified position.
+     @discardableResult
+     mutating func remove(safe index: Index) -> Element? {
+         guard indices.contains(index) else { return nil }
+         return remove(at: index)
+     }
+      */
+}
+
+public extension Collection {
+    /// Returns the collection's indices contained in the specified range.
+    func indices(for range: Range<Index>) -> Indices.SubSequence {
+        indices[range.relative(clampedTo: self)]
+    }
+    
+    /// Returns the collection's indices contained in the specified range.
+    @_disfavoredOverload
+    func indices(for range: Range<Index>) -> [Index] {
+        Array(indices(for: range))
+    }
+    
+    /// Returns the collection's indices contained in the specified range.
+    func indices<R: RangeExpression<Index>>(for range: R) -> Indices.SubSequence {
+        indices[range.relative(clampedTo: self)]
+    }
+    
+    /// Returns the collection's indices contained in the specified range.
+    @_disfavoredOverload
+    func indices<R: RangeExpression<Index>>(for range: R) -> [Index] {
+        Array(indices(for: range))
+    }
+    
+    /// Returns the collection's indices contained in the specified range set.
+    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
+    func indices(for ranges: RangeSet<Index>) -> DiscontiguousSlice<Indices> {
+        indices[ranges.relative(clampedTo: self)]
+    }
+    
+    /// Returns the collection's indices contained in the specified range set.
+    @available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
+    @_disfavoredOverload
+    func indices(for ranges: RangeSet<Index>) -> [Index] {
+        Array(indices(for: ranges))
+    }
+}
+
+@available(macOS 15.0, iOS 18.0, tvOS 18.0, watchOS 11.0, visionOS 2.0, *)
+extension Collection {
+    @_disfavoredOverload
+    subscript(_ ranges: RangeSet<Index>) -> [Element] {
+        Array(self[ranges])
+    }
+    
+    subscript(safe ranges: RangeSet<Index>) -> DiscontiguousSlice<Self> {
+        self[ranges.relative(to: self)]
+    }
+    
+    @_disfavoredOverload
+    subscript(safe ranges: RangeSet<Index>) -> [Element] {
+        Array(self[safe: ranges])
+    }
+    
+    subscript(clamp ranges: RangeSet<Index>) -> DiscontiguousSlice<Self> {
+        self[ranges.relative(clampedTo: self)]
+    }
+    
+    @_disfavoredOverload
+    subscript(clamp ranges: RangeSet<Index>) -> [Element] {
+        Array(self[clamp: ranges])
     }
 }
 
@@ -1165,6 +1263,7 @@ public extension Collection {
         guard range.upperBound >= startIndex, range.upperBound < endIndex else { return nil }
         return startIndex..<index(after: range.upperBound)
     }
+
     /// Returns the range containing the element at the specified index, or an empty range if the index is outside the collection's bounds.
     func range(clamped index: Index) -> Range<Index> {
         guard index >= startIndex, index < endIndex else { return startIndex..<startIndex }
@@ -1242,73 +1341,64 @@ public extension Collection {
 
 private extension Collection {
     func clamp(_ range: PartialRangeFrom<Index>) -> Range<Index> {
-        Swift.min(Swift.max(range.lowerBound, startIndex), endIndex)..<endIndex
+        range.relative(clampedTo: self)
     }
     
     func clamp(_ range: PartialRangeUpTo<Index>) -> Range<Index> {
-        startIndex..<Swift.min(Swift.max(range.upperBound, startIndex), endIndex)
+        range.relative(clampedTo: self)
     }
     
     func clamp(_ range: PartialRangeThrough<Index>) -> Range<Index> {
-        guard !isEmpty, range.upperBound >= startIndex else { return startIndex..<startIndex }
-        return startIndex..<(range.upperBound >= endIndex ? endIndex : index(after: range.upperBound))
+        range.relative(clampedTo: self)
     }
     
     func clamp(_ range: ClosedRange<Index>) -> Range<Index> {
-        let lowerBound = Swift.min(Swift.max(range.lowerBound, startIndex), endIndex)
-        guard lowerBound < endIndex, range.upperBound >= startIndex else { return lowerBound..<lowerBound }
-        return lowerBound..<Swift.max(lowerBound, range.upperBound >= endIndex ? endIndex : index(after: range.upperBound))
+        range.relative(clampedTo: self)
     }
     
     func clamp(_ range: Range<Index>) -> Range<Index> {
-        range.clamped(to: startIndex..<endIndex)
+        range.relative(clampedTo: self)
     }
     
     func safe(_ range: PartialRangeFrom<Index>) -> Range<Index>? {
-        guard range.lowerBound >= startIndex, range.lowerBound <= endIndex else { return nil }
-        return range.lowerBound..<endIndex
+        range.relative(safe: self)
     }
     
     func safe(_ range: PartialRangeUpTo<Index>) -> Range<Index>? {
-        guard range.upperBound >= startIndex, range.upperBound <= endIndex else { return nil }
-        return startIndex..<range.upperBound
+        range.relative(safe: self)
     }
     
     func safe(_ range: PartialRangeThrough<Index>) -> Range<Index>? {
-        guard range.upperBound >= startIndex, range.upperBound < endIndex else { return nil }
-        return startIndex..<index(after: range.upperBound)
+        range.relative(safe: self)
     }
     
     func safe(_ range: ClosedRange<Index>) -> Range<Index>? {
-        guard range.lowerBound >= startIndex, range.upperBound < endIndex else { return nil }
-        return range.lowerBound..<index(after: range.upperBound)
+        range.relative(safe: self)
     }
     
     func safe(_ range: Range<Index>) -> Range<Index>? {
-        guard range.lowerBound >= startIndex, range.upperBound <= endIndex else { return nil }
-        return range
+        range.relative(safe: self)
     }
     
     func safe(_ index: Index) -> Index? {
         index >= startIndex && index < endIndex ? index : nil
     }
     
+    func safeRange(_ index: Index) -> Range<Index>? {
+        guard let index = safe(index) else { return nil }
+        return index..<self.index(after: index)
+    }
+    
+    func clamp(_ index: Index) -> Range<Index> {
+        safeRange(index) ?? startIndex..<startIndex
+    }
+    
     func clamp<R: RangeExpression<Index>>(_ range: R) -> Range<Index> {
-        if let range = range as? Range<Index> { return clamp(range) }
-        if let range = range as? ClosedRange<Index> { return clamp(range) }
-        if let range = range as? PartialRangeThrough<Index> { return clamp(range) }
-        if let range = range as? PartialRangeFrom<Index> { return clamp(range) }
-        if let range = range as? PartialRangeUpTo<Index> { return clamp(range) }
-        return startIndex..<startIndex
+        range.relative(clampedTo: self)
     }
     
     func safe<R: RangeExpression<Index>>(_ range: R) -> Range<Index>? {
-        if let range = range as? Range<Index> { return safe(range) }
-        if let range = range as? ClosedRange<Index> { return safe(range) }
-        if let range = range as? PartialRangeThrough<Index> { return safe(range) }
-        if let range = range as? PartialRangeFrom<Index> { return safe(range) }
-        if let range = range as? PartialRangeUpTo<Index> { return safe(range) }
-        return nil
+        range.relative(safe: self)
     }
 }
 
@@ -1385,5 +1475,18 @@ public extension Collection {
         }
 
         return result
+    }
+}
+
+public extension BidirectionalCollection {
+    /**
+     Returns a subsequence by skipping the last elements while the predicate returns `true` and returning the remaining elements.
+
+     - Parameter predicate: A closure that takes an element of the collection as its argument and returns `true` if the element should be dropped. Once the predicate returns `false`, it will not be called again.
+
+     - Complexity: O(n), where n is the length of the collection.
+     */
+    func dropLast(while predicate: (Element) throws -> Bool) rethrows -> SubSequence {
+        try lastIndex(where: { try !predicate($0) }).map { self[...$0] } ?? self[..<startIndex]
     }
 }

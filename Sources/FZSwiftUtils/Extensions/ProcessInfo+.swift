@@ -106,7 +106,7 @@ extension ProcessInfo {
 }
 
 /**
- A token that represents a process activity created by ``ProcessInfo``.
+ A token that represents a process activity created by ``Foundation/ProcessInfo``.
 
  To begin an activity, use ``Foundation/ProcessInfo/startActivity(_:reason:)``. This method returns a token that keeps the activity active for the lifetime of the token,  unless the token's ``endActivity()`` is called earlier.
 

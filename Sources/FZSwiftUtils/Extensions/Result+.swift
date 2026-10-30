@@ -22,3 +22,18 @@ public extension Result {
     }
 }
 
+nonisolated public extension Result {
+    /// Returns a new result by applying the specified throwing transformation to the success value.
+    @_disfavoredOverload
+    func map<NewSuccess>(_ transform: (Success) throws(Failure) -> NewSuccess) -> Result<NewSuccess, Failure> {
+        .init(catching: { () throws(Failure) in try transform(get()) })
+    }
+}
+
+/*
+/// Returns a new result by applying the specified throwing transformation to the success value.
+@_disfavoredOverload
+func map<NewSuccess>(_ transform: (Success) throws -> NewSuccess) -> Result<NewSuccess, Error> {
+    .init(catching: { try transform(get()) })
+}
+ */

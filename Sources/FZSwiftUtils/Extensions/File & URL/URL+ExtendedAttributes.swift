@@ -263,7 +263,7 @@ public extension URL {
         }
         
         /// Flags describing how an extended attribute should be handled by the file system.
-        public struct Flags: OptionSet, CustomStringConvertible {
+        public struct Flags: OptionSet, CustomStringConvertible, Hashable {
             /**
              Prevents the attribute from being shared or exported outside the local system.
              
@@ -302,17 +302,17 @@ public extension URL {
             public var rawValue: xattr_flags_t
             
             public var description: String {
-                var strings: [String] = []
-                for element in elements() {
-                    if element == .noExport { strings += ".noExport" }
-                    else if element == .contentDependent { strings += ".contentDependent" }
-                    else if element == .neverPreserve { strings += ".neverPreserve" }
-                    else if element == .onlyBackup { strings += ".onlyBackup" }
-                    else if element == .syncable { strings += ".syncable" }
-                    else { strings += ".init(rawValue: \(element.rawValue))" }
-                }
-                return "[\(strings.sorted().joined(separator: ", "))]"
+                let strings = elements.map({ Self.descriptions[$0] ?? ".init(rawValue: \($0))" })
+                return strings.count == 1 ? strings.first! :  "[\(strings.joined(separator: ", "))]"
             }
+            
+            private static let descriptions: [Self: String] = [
+                .noExport: "noExport",
+                .contentDependent: "contentDependent",
+                .neverPreserve: "neverPreserve",
+                .onlyBackup: "onlyBackup",
+                .syncable: "syncable"
+            ]
             
             static func fromName(_ name: String) -> Self {
                 .init(rawValue: xattr_flags_from_name(name))

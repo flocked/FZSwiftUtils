@@ -253,3 +253,59 @@ extension Cache where Key == NSString {
         removeValue(for: key as NSString)
     }
 }
+
+/*
+ public class AnyCache<Key: Hashable, Value>: NSObject, NSCacheDelegate {
+     private let cache = NSCache<KeyObject, ValueBox>()
+     private var keys: [Key: KeyObject] = [:]
+     private var objectKeys: [ObjectIdentifier: Key] = [:]
+     private var keyBeingAdded: KeyObject?
+     
+     public func cache(_ cache: NSCache<AnyObject, AnyObject>, willEvictObject obj: Any) {
+         guard let key = objectKeys[ObjectIdentifier((obj as AnyObject))] else { return }
+         guard keys[key] !== keyBeingAdded else { return }
+         keys[key] = nil
+     }
+     
+     public override init() {
+         super.init()
+         cache.delegate = self
+     }
+
+     private class KeyObject { }
+     private class ValueBox {
+         let value: Value
+         
+         init(value: Value) {
+             self.value = value
+         }
+     }
+         
+     public func getValue(for key: Key) -> Value? {
+         guard let keyObject = keys[key] else { return nil }
+         return cache.object(forKey: keyObject)?.value
+     }
+     
+     public func setValue(_ value: Value?, for key: Key, cost: Int? = nil) {
+         if let value = value {
+             let keyObject = keys[key, initial: KeyObject()]
+             keyBeingAdded = keyObject
+             let box = ValueBox(value: value)
+             objectKeys[ObjectIdentifier(box)] = key
+             if let cost = cost {
+                 cache.setObject(box, forKey: keyObject, cost: cost)
+             } else {
+                 cache.setObject(box, forKey: keyObject)
+             }
+             keyBeingAdded = nil
+         } else {
+             removeValue(for: key)
+         }
+     }
+  
+     public func removeValue(for key: Key) {
+         guard let keyObject = keys[key] else { return }
+         cache.removeObject(forKey: keyObject)
+     }
+ }
+ */

@@ -62,7 +62,7 @@ extension FSEvent {
 
 extension FSEvent.Actions: CustomStringConvertible {
     public var description: String {
-        "[\(elements().collect().compactMap({$0._description}).joined(separator: ", "))]"
+        "[\(elements.collect().compactMap({$0._description}).joined(separator: ", "))]"
     }
     
     var _description: String {

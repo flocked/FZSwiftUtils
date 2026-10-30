@@ -104,11 +104,11 @@ extension FSEvent {
 
 extension FSEvent.Flags: CustomStringConvertible, CustomDebugStringConvertible {
     public var description: String {
-        "[\(elements().collect().compactMap({$0._description}).joined(separator: ", "))]"
+        "[\(elements.collect().compactMap({$0._description}).joined(separator: ", "))]"
     }
     
     public var debugDescription: String {
-        "[\(elements().compactMap({$0._debugDescription}).joined(separator: ", "))]"
+        "[\(elements.compactMap({$0._debugDescription}).joined(separator: ", "))]"
     }
     
     var _description: String {

@@ -470,7 +470,7 @@ public extension ObjCClassInfo {
         var start: AnyClass = cls
         if !isInstance {
             guard let metaclass = ObjCClass(cls).metaClass else { return [] }
-            start = metaclass
+            start = metaclass.cls
         }
         guard includeSuperclasses else { return [start] }
         return Array(first: start, next: { guard let cls = class_getSuperclass($0), !ObjCRuntime.isNSObjectClass(cls) else {

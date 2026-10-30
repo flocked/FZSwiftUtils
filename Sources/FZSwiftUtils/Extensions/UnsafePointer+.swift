@@ -107,21 +107,37 @@ public extension AutoreleasingUnsafeMutablePointer {
 }
 
 extension UnsafePointer<CChar> {
-    /// Creates a new string by copying the null-terminated UTF-8 data referenced by the pointer.
-    public var string: String {
-        String(cString: self)
-    }
-}
-
-extension UnsafeMutablePointer<CChar> {
-    /// Creates a new string by copying the null-terminated UTF-8 data referenced by the pointer.
+    /// Creates a string by copying the null-terminated UTF-8 data referenced by the pointer.
     public var string: String {
         String(cString: self)
     }
     
-    /// Creates a new string by copying the null-terminated UTF-8 data referenced by the pointer and releasing the pointer.
+    /// Creates a string by copying the null-terminated data referenced by the pointer using the specified encoding.
+    public func string(encoding: String.Encoding) -> String? {
+        String(cString: self, encoding: encoding)
+    }
+}
+
+extension UnsafeMutablePointer<CChar> {
+    /// Creates a string by copying the null-terminated UTF-8 data referenced by the pointer.
+    public var string: String {
+        String(cString: self)
+    }
+
+    /// Creates a string by copying the null-terminated data referenced by the pointer using the specified encoding.
+    public func string(encoding: String.Encoding) -> String? {
+        String(cString: self, encoding: encoding)
+    }
+
+    /// Creates a string by copying the null-terminated UTF-8 data referenced by the pointer and freeing the pointer.
     public func stringAndFree() -> String {
         defer { free(self) }
         return String(cString: self)
+    }
+
+    /// Creates a string by copying the null-terminated data referenced by the pointer using the specified encoding and freeing the pointer.
+    public func stringAndFree(encoding: String.Encoding) -> String? {
+        defer { free(self) }
+        return String(cString: self, encoding: encoding)
     }
 }

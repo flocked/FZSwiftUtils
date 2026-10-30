@@ -60,41 +60,25 @@ public struct AudioFormatOptions: OptionSet, Codable, Hashable, Sendable, Custom
         self.rawValue = rawValue
     }
     
+    private static let descriptions: [Self: String] = [
+        .appleLossless16BitSourceData: "appleLossless16BitSourceData",
+        .appleLossless20BitSourceData: "appleLossless20BitSourceData",
+        .appleLossless24BitSourceData: "appleLossless24BitSourceData",
+        .appleLossless32BitSourceData: "appleLossless32BitSourceData",
+        .isAlignedHigh: "isAlignedHigh",
+        .isBigEndian: "isBigEndian",
+        .isFloat: "isFloat",
+        .isNonInterleaved: "isNonInterleaved",
+        .isNonMixable: "isNonMixable",
+        .isPacked: "isPacked",
+        .isSignedInteger: "isSignedInteger",
+        .nativeEndian: "nativeEndian",
+        .nativeFloatPacked: "nativeFloatPacked"
+    ]
+    
     public var description: String {
-        var strings: [String] = []
-        for element in elements() {
-            switch element {
-            case .appleLossless16BitSourceData:
-                strings += ".appleLossless16BitSourceData"
-            case .appleLossless20BitSourceData:
-                strings += ".appleLossless20BitSourceData"
-            case .appleLossless24BitSourceData:
-                strings += ".appleLossless24BitSourceData"
-            case .appleLossless32BitSourceData:
-                strings += ".appleLossless32BitSourceData"
-            case .isAlignedHigh:
-                strings += ".isAlignedHigh"
-            case .isBigEndian:
-                strings += ".isBigEndian"
-            case .isFloat:
-                strings += ".isFloat"
-            case .isNonInterleaved:
-                strings += ".isNonInterleaved"
-            case .isNonMixable:
-                strings += ".isNonMixable"
-            case .isPacked:
-                strings += ".isPacked"
-            case .isSignedInteger:
-                strings += ".isSignedInteger"
-            case .nativeEndian:
-                strings += ".nativeEndian"
-            case .nativeFloatPacked:
-                strings += ".nativeFloatPacked"
-            default:
-                strings += ".init(rawValue: \(element.rawValue))"
-            }
-        }
-        return "[\(strings.joined(separator: ", "))]"
+        let strings = elements.map({ Self.descriptions[$0] ?? ".init(rawValue: \($0))"})
+        return strings.count == 1 ? strings.first! : "[\(strings.joined(separator: ", "))]"
     }
 }
 

@@ -16,8 +16,7 @@ public extension URLResponse {
     
     /// The expected length of the response’s content.
     var expectedContentSize: DataSize? {
-        guard expectedContentLength >= 0 else { return nil }
-        return .bytes(expectedContentLength)
+        expectedContentLength >= 0 ? .bytes(expectedContentLength) : nil
     }
     
     /// The content type type of the response.

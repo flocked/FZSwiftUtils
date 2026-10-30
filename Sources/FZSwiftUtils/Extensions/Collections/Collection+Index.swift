@@ -1,5 +1,5 @@
 //
-//  Sequence+Index.swift
+//  Collection+Index.swift
 //  
 //
 //  Created by Florian Zand on 17.08.25.
@@ -37,7 +37,7 @@ public extension Collection where Element: Equatable {
 
      - Returns: The indexes of the elements.
      */
-    func indexes<S>(of elements: S) -> [Index] where S: Sequence<Element> {
+    func indexes<S: Sequence<Element>>(of elements: S) -> [Index] {
         indexes(where: { elements.contains($0) })
     }
 }
@@ -51,8 +51,8 @@ public extension Collection where Element: Hashable {
 
      - Returns: The indexes of the elements.
      */
-    func indexes<S>(of elements: S) -> [Index] where S: Sequence<Element> {
-        let lookup = Set(elements)
-        return indexes(where: { lookup.contains($0) })
+    func indexes<S: Sequence<Element>>(of elements: S) -> [Index] {
+        let elements = Set(elements)
+        return indexes(where: { elements.contains($0) })
     }
 }
