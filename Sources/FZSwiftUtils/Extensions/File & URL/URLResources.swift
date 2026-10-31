@@ -395,6 +395,7 @@ public class URLResources {
         attributes.bitmapcount = UInt16(ATTR_BIT_MAP_COUNT)
         attributes.commonattr = attrgroup_t(ATTR_CMN_ADDEDTIME)
         var value = date?.timespec ?? timespec()
+
         guard withUnsafeMutablePointer(to: &value, { value in
             url.withUnsafeFileSystemRepresentation {
                 setattrlist($0!, &attributes, value, MemoryLayout<timespec>.size, 0)

@@ -14,7 +14,7 @@ extension FourCharCode: Swift.ExpressibleByStringLiteral, Swift.ExpressibleByUni
         s += String(UnicodeScalar((n >> 16) & 255)!)
         s += String(UnicodeScalar((n >> 8) & 255)!)
         s += String(UnicodeScalar(n & 255)!)
-        return s.trimmingCharacters(in: .whitespaces)
+        return s
     }
     
     public init(stringLiteral value: StringLiteralType) {

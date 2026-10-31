@@ -5,8 +5,8 @@
 //  Created by Florian Zand on 24.01.23.
 //
 
-import Foundation
 import Accessibility
+import Foundation
 
 public extension FileManager {
     /**
@@ -156,7 +156,7 @@ public extension FileManager {
         - attributes: The file attributes for the new directory. You can set the owner and group numbers, file permissions, and modification date. If you specify `nil` for this parameter, the directory is created according to the umask(2) macOS Developer Tools Manual Page of the process. Some of the keys, such as [hfsCreatorCode](https://developer.apple.com/documentation/foundation/fileattributekey/hfscreatorcode) and [hfsTypeCode](https://developer.apple.com/documentation/foundation/fileattributekey/hfstypecode), do not apply to directories.
      */
     func createDirectoryIfMissing(at url: URL, withIntermediateDirectories createIntermediates: Bool = true, attributes: [FileAttributeKey: Any]? = nil) throws {
-        var isDirectory: Bool = false
+        var isDirectory = false
         if fileExists(at: url, isDirectory: &isDirectory) {
             guard !isDirectory else { return }
             throw CocoaError(.fileWriteFileExists)
@@ -219,7 +219,6 @@ public extension FileManager {
         isDeletableFile(atPath: url.path)
     }
 
-    
     /**
      Returns a Boolean value indicating whether the files or directories in specified paths have the same contents.
      
@@ -238,7 +237,7 @@ public extension FileManager {
      Creates a file with the specified content and attributes at the specified url.
      
      - Parameters:
-        - url: The url of a file or directory to compare with the contents of `url2`.
+        - url: The URL for the new file.
         - contents: A data containing the contents of the new file.
         - attributes: A dictionary containing the attributes to associate with the new file. You can use these attributes to set the owner and group numbers, file permissions, and modification date.
      - Returns: `true` if the operation was successful or if the item already exists, otherwise `false`.
@@ -251,7 +250,7 @@ public extension FileManager {
      If a file already exists at the url, this method overwrites the contents of that file if the current process has the appropriate privileges to do so.
      */
     @discardableResult
-    func createFile(at url: URL, contents: Data? = nil, attributes: [FileAttributeKey:Any]? = nil) -> Bool {
+    func createFile(at url: URL, contents: Data? = nil, attributes: [FileAttributeKey: Any]? = nil) -> Bool {
         createFile(atPath: url.path, contents: contents, attributes: attributes)
     }
     
@@ -273,7 +272,7 @@ public extension FileManager {
      - Parameter url: The URL of a file or directory.
      - Returns: A dictionary object that describes the attributes (file, directory, symlink, and so on) of the file specified by `url`.
      */
-    func attributesOfItem(at url: URL) throws -> [FileAttributeKey : Any] {
+    func attributesOfItem(at url: URL) throws -> [FileAttributeKey: Any] {
         try attributesOfItem(atPath: url.path)
     }
     
@@ -284,36 +283,56 @@ public extension FileManager {
         - attributes: A dictionary containing as keys the attributes to set for path and as values the corresponding value for the attribute.
         - url: The URL of a file or directory.
      */
-    func setAttributes(_ attributes: [FileAttributeKey : Any], ofItemAt url: URL) throws {
+    func setAttributes(_ attributes: [FileAttributeKey: Any], ofItemAt url: URL) throws {
         try setAttributes(attributes, ofItemAtPath: url.path)
     }
     
     /**
-     Copies the attributes of the specified file or directory to the other item.
-     
+     Copies the writable attributes of a file or directory to another item.
+
+     Only attributes supported by ``Foundation/FileManager/setAttributes(_:ofItemAt:)`` are copied.
+     Attributes that cannot be modified, such as file size and file type, are ignored.
+
      - Parameters:
-        - url: The URL of a file or directory for the attributes.
-        - destionationURL: The destionation item for the attributes.
+        - sourceURL: The URL of the item whose attributes are copied.
+        - destinationURL: The URL of the item receiving the attributes.
+        - strategy: The strategy used to merge the source attributes with the destination attributes. Defaults to `.overwrite`.
      */
-    func copyAttributes(of sourceURL: URL, to destionationURL: URL, strategy: AttributesMergeStrategy = .overwrite) throws {
-        let sourceAttr = try attributesOfItem(at: sourceURL)
-        if strategy == .replace {
-            try setAttributes(sourceAttr, ofItemAt: destionationURL)
-        } else {
-            var destAttr = try attributesOfItem(at: destionationURL)
-            try destAttr.merge(sourceAttr, uniquingKeysWith: strategy == .keepOriginal ? .keepOriginal : .overwrite)
-            try setAttributes(destAttr, ofItemAt: destionationURL)
+    func copyAttributes(of sourceURL: URL, to destinationURL: URL, strategy: AttributesMergeStrategy = .overwrite) throws {
+        let sourceAttributes = try attributesOfItem(at: sourceURL).filter { Self.copyableAttributes.contains($0.key) }
+        guard !sourceAttributes.isEmpty else { return }
+        switch strategy {
+        case .keepOriginal:
+            let destinationAttributes = try attributesOfItem(at: destinationURL)
+            let attributes = sourceAttributes.filter { destinationAttributes[$0.key] == nil }
+            guard !attributes.isEmpty else { return }
+            try setAttributes(attributes, ofItemAt: destinationURL)
+        case .overwrite:
+            try setAttributes(sourceAttributes, ofItemAt: destinationURL)
         }
     }
-    
+
+    /// The strategy used when copying file attributes.
     enum AttributesMergeStrategy {
-        /// Keeps the original attributes, only adding new attributes.
+        /// Preserves existing destination attributes, copying only attributes that are missing.
         case keepOriginal
-        /// Overwrites the original attributes with the new attributes.
+        /// Overwrites matching destination attributes with source attributes, preserving other destination attributes.
         case overwrite
-        /// Replaces all attributes with source attributes.
-        case replace
     }
+    
+    fileprivate static let copyableAttributes: Set<FileAttributeKey> = [
+        .appendOnly,
+        .creationDate,
+        .extensionHidden,
+        .groupOwnerAccountID,
+        .hfsCreatorCode,
+        .hfsTypeCode,
+        .immutable,
+        .modificationDate,
+        .ownerAccountID,
+        .posixPermissions,
+        .protectionKey
+    ]
     
     /**
      Performs a deep enumeration of the specified directory and returns the paths of all of the contained subdirectories.
@@ -405,12 +424,20 @@ public extension FileManager {
     }
     
     /**
-     Returns the `URL` of the item pointed to by a symbolic link.
-     - Parameter url: The url of a file or directory.
-     - Returns: The `URL` of the directory or file to which the symbolic link path refers.
+     Returns the destination URL of a symbolic link.
+
+     Relative symbolic link destinations are resolved against the symbolic link's parent directory.
+     
+     The returned URL is absolute and standardized.
+
+     - Parameters:
+        - url: The URL of the symbolic link.
+        - resolvingSymlinks: Whether to resolve additional symbolic links in the destination path.
+     - Returns: The destination URL of the symbolic link.
      */
-    func destinationOfSymbolicLink(at url: URL) throws -> URL {
-        .file(try destinationOfSymbolicLink(atPath: url.path))
+    func destinationOfSymbolicLink(at url: URL, resolvingSymlinks: Bool = false) throws -> URL {
+        let destination = try URL(fileURLWithPath: destinationOfSymbolicLink(atPath: url.path), relativeTo: url.deletingLastPathComponent()).absoluteURL.standardizedFileURL
+        return resolvingSymlinks ? destination.resolvingSymlinksInPath() : destination
     }
     
     /// The handlers for the file manager.
@@ -425,21 +452,21 @@ public extension FileManager {
     /// Handlers for a file manager.
     struct Handlers {
         /// The handler that determinates whether a file should should move an item to the new url.
-        public var shouldMove: ((_ from: URL, _ to: URL)->Bool)?
+        public var shouldMove: ((_ from: URL, _ to: URL) -> Bool)?
         /// The handler that determinates whether a file should should copy an item to the new url.
-        public var shouldCopy: ((_ from: URL, _ to: URL)->Bool)?
+        public var shouldCopy: ((_ from: URL, _ to: URL) -> Bool)?
         /// The handler that determinates whether a file should should remove an item.
-        public var shouldRemove: ((_ url: URL)->Bool)?
+        public var shouldRemove: ((_ url: URL) -> Bool)?
         /// The handler that determinates whether a hard link should be created between the items at the two urls.
-        public var shouldLink: ((_ url: URL, _ to: URL)->Bool)?
+        public var shouldLink: ((_ url: URL, _ to: URL) -> Bool)?
         /// The handler that determinates whether the file manager should continue after an error occurs while moving an item.
-        public var shouldProceedAfterMovingError: ((_ from: URL, _ to: URL, _ error: any Error)->Bool)?
+        public var shouldProceedAfterMovingError: ((_ from: URL, _ to: URL, _ error: any Error) -> Bool)?
         /// The handler that determinates whether the file manager should continue after an error occurs while copying an item.
-        public var shouldProceedAfterCopyingError: ((_ from: URL, _ to: URL, _ error: any Error)->Bool)?
+        public var shouldProceedAfterCopyingError: ((_ from: URL, _ to: URL, _ error: any Error) -> Bool)?
         /// The handler that determinates whether the file manager should continue after an error occurs while removing an item.
-        public var shouldProceedAfterRemovingError: ((_ url: URL, _ error: any Error)->Bool)?
+        public var shouldProceedAfterRemovingError: ((_ url: URL, _ error: any Error) -> Bool)?
         /// The handler that determinates whether the file manager should continue after an error occurs while linking an item.
-        public var shouldProceedAfterLinkingError: ((_ url: URL, _ to: URL, _ error: any Error)->Bool)?
+        public var shouldProceedAfterLinkingError: ((_ url: URL, _ to: URL, _ error: any Error) -> Bool)?
         
         var needsDelegate: Bool {
             shouldMove != nil || shouldCopy != nil || shouldRemove != nil || shouldLink != nil || shouldProceedAfterMovingError != nil || shouldProceedAfterCopyingError != nil || shouldProceedAfterRemovingError != nil || shouldProceedAfterLinkingError != nil
@@ -448,7 +475,7 @@ public extension FileManager {
     
     private var handlerDelegate: Delegate? {
         get { associatedValue(for: "handlerDelegate") }
-        set { setAssociatedValue(newValue, for: "handlerDelegate")  }
+        set { setAssociatedValue(newValue, for: "handlerDelegate") }
     }
     
     private class Delegate: NSObject, FileManagerDelegate {
@@ -492,7 +519,7 @@ public extension FileManager {
             super.init()
             delegate = fileManager.delegate
             fileManager.delegate = self
-            observation = fileManager.observeChanges(for: \.delegate) { [weak self] old, new in
+            observation = fileManager.observeChanges(for: \.delegate) { [weak self] _, new in
                 guard let self = self, !(new is Delegate) else { return }
                 self.delegate = new
                 self.fileManager?.delegate = self

@@ -8,18 +8,21 @@
 import Foundation
 
 /// The attributes of a file system item.
-public struct FileAttributes {
+public struct FileAttributes: CustomStringConvertible, CustomDebugStringConvertible, Sequence {
+    
+    /// All attributes of the file system item.
+    public private(set) var attributes: [FileAttributeKey: Any]
 
     /**
      Creates an instance representing the attributes of the specified file or folder.
 
-     You can modify the attributes of a file or folder by assigning new values to this instance and use it with `FileManager` ``Foundation/FileManager/setAttributes(_:ofItemAt:)``.
+     You can modify some of the attributes of a file or folder by assigning new values to this instance and use it with `FileManager` ``Foundation/FileManager/setAttributes(_:ofItemAt:)``.
      
      - Parameter url: The url of the file.
      - Returns: `FileAttribute` for the file.
      */
     public init(url: URL) throws {
-        self = try FileManager.default.attributes(for: url)
+        attributes = try FileManager.default.attributesOfItem(at: url)
     }
     
     /**
@@ -63,7 +66,8 @@ public struct FileAttributes {
         set { self[.modificationDate] = newValue }
     }
 
-    public var directoryFilesCount: Int? { self[.referenceCount] }
+    /// The number of hard links referencing the file.
+    public var referenceCount: Int? { self[.referenceCount] }
 
     /// The identifier for the device on which the file resides.
     public var deviceIdentifier: Int? { self[.deviceIdentifier] }
@@ -87,10 +91,10 @@ public struct FileAttributes {
     }
 
     /// The filesystem number.
-    public var fileSystemNumber: Int { self[.systemNumber] ?? 0 }
+    public var fileSystemNumber: Int? { self[.systemNumber] }
 
     /// The filesystem file number.
-    public var fileSystemFileNumber: Int { self[.systemFileNumber] ?? 0 }
+    public var fileSystemFileNumber: Int? { self[.systemFileNumber] }
 
     /// A Boolean value indicating whether the file’s extension is hidden.
     public var fileExtensionIsHidden: Bool {
@@ -99,14 +103,14 @@ public struct FileAttributes {
     }
 
     /// The file’s HFS creator code.
-    public var hfsCreatorCode: OSType {
-        get { self[.hfsCreatorCode]! }
+    public var hfsCreatorCode: OSType? {
+        get { self[.hfsCreatorCode] }
         set { self[.hfsCreatorCode] = newValue }
     }
 
     /// The file’s HFS type code.
-    public var hfsTypeCode: OSType {
-        get { self[.hfsTypeCode] ?? 0 }
+    public var hfsTypeCode: HFSType? {
+        get { self[.hfsTypeCode] }
         set { self[.hfsTypeCode] = newValue }
     }
 
@@ -116,8 +120,10 @@ public struct FileAttributes {
         set { self[.immutable] = newValue }
     }
 
-    /// A Boolean value indicating whether the file is readonly.
-    public var isReadOnly: Bool? { self[.appendOnly] ?? false }
+    /// A Boolean value indicating whether the file is append-only.
+    public var isAppendOnly: Bool {
+        self[.appendOnly] ?? false
+    }
 
     /// The file’s owner's account ID.
     public var ownerAccountID: Int? {
@@ -125,8 +131,8 @@ public struct FileAttributes {
         set { self[.ownerAccountID] = newValue }
     }
 
-    /// The file’s group ID.
-    public var groupOwnerAccountID: Double? {
+    /// The file’s group owner account ID.
+    public var groupOwnerAccountID: Int? {
         get { self[.groupOwnerAccountID] }
         set { self[.groupOwnerAccountID] = newValue }
     }
@@ -156,40 +162,145 @@ public struct FileAttributes {
     public var extendedAttributes: [String: Data]? { self[.extendedAttributes]  }
 
     // MARK: Internal
-
-    var attributes: [FileAttributeKey: Any]
+    
+    var writableAttributes: [FileAttributeKey: Any] {
+        attributes.filter { Self.writableAttributes.contains($0.key) }
+    }
 
     /// The attribute for the specified attribute key.
     public subscript<T>(attributeKey: FileAttributeKey) -> T? {
         get { attributes[attributeKey] as? T }
-        set { setAttribute(attributeKey, to: newValue) }
+        set {
+            guard Self.writableAttributes.contains(attributeKey) else { return }
+            attributes[attributeKey] = newValue
+        }
     }
     
     /// The attribute for the specified attribute key.
     public subscript<T: RawRepresentable>(attributeKey: FileAttributeKey) -> T? {
-        get { attributes[attributeKey] as? T }
-        set { setAttribute(attributeKey, to: newValue) }
-    }
-        
-    func attribute<T>(for attributeKey: FileAttributeKey) -> T? {
-        attributes[attributeKey] as? T
-    }
-    
-    func attribute<T: RawRepresentable>(for attributeKey: FileAttributeKey) -> T? {
-        guard let rawValue = attributes[attributeKey] as? T.RawValue else { return nil }
-        return T(rawValue: rawValue)
+        get {
+            guard let rawValue = attributes[attributeKey] as? T.RawValue else { return nil }
+            return T(rawValue: rawValue)
+        }
+        set { self[attributeKey] = newValue?.rawValue }
     }
     
-    mutating func setAttribute<T: RawRepresentable>(_ attributeKey: FileAttributeKey, to value: T?) {
-        setAttribute(attributeKey, to: value?.rawValue)
-    }
+    private static let writableAttributes: Set<FileAttributeKey> = [
+        .creationDate,
+        .modificationDate,
+        .ownerAccountName,
+        .groupOwnerAccountName,
+        .posixPermissions,
+        .extensionHidden,
+        .busy,
+        .groupOwnerAccountID,
+        .ownerAccountID,
+        .immutable,
+        .hfsTypeCode,
+        .hfsCreatorCode
+    ]
+    
+    public var description: String { attributes.description }
+    public var debugDescription: String { attributes.debugDescription }
+    public func makeIterator() -> [FileAttributeKey: Any].Iterator { attributes.makeIterator() }
+}
 
-    mutating func setAttribute<T>(_ attributeKey: FileAttributeKey, to value: T?) {
-        guard let value = value, Self.writableAttributes.contains(attributeKey) else { return }
-        attributes[attributeKey] = value
+public extension FileAttributes {
+    /// A classic Macintosh four-character file type code.
+    struct HFSType: RawRepresentable, Hashable, Sendable, CustomStringConvertible, CustomDebugStringConvertible {
+        /// The underlying four-character type code.
+        public let rawValue: OSType
+
+        /// Creates an HFS type from its raw value.
+        public init(rawValue: OSType) {
+            self.rawValue = rawValue
+        }
+
+        /// Creates an HFS type from a four-character string.
+        public init(_ code: String) {
+            guard let bytes = code.data(using: .macOSRoman), bytes.count == 4 else {
+                preconditionFailure("HFS type codes must contain exactly four Mac OS Roman bytes.")
+            }
+            self.rawValue = bytes.reduce(0) { ($0 << 8) | OSType($1) }
+        }
+
+        // MARK: - Text
+        /// A plain text file.
+        public static let text = Self("TEXT")
+        /// A read-only text file.
+        public static let readOnlyText = Self("ttro")
+
+        // MARK: - Images
+        /// A Macintosh PICT image.
+        public static let pict = Self("PICT")
+        /// A JPEG image.
+        public static let jpeg = Self("JPEG")
+        /// A GIF image.
+        public static let gif = Self("GIFf")
+        /// A TIFF image.
+        public static let tiff = Self("TIFF")
+        /// A PNG image.
+        public static let png = Self("PNGf")
+
+        // MARK: - Documents
+        /// A PDF document.
+        public static let pdf = Self("PDF ")
+
+        // MARK: - Audio
+        /// An AIFF audio file.
+        public static let aiff = Self("AIFF")
+        /// A WAV audio file.
+        public static let wave = Self("WAVE")
+        /// An MP3 audio file.
+        public static let mp3 = Self("MPG3")
+
+        // MARK: - Video
+        /// A QuickTime movie.
+        public static let quickTimeMovie = Self("MooV")
+        /// An MPEG video file.
+        public static let mpeg = Self("MPEG")
+
+        // MARK: - Other
+        /// A Macintosh application.
+        public static let application = Self("APPL")
+        /// A binary file.
+        public static let binary = Self("BINA")
+        /// An unknown or unspecified file type.
+        public static let unknown = Self("????")
+        
+        /// The four-character string representation of the HFS type code.
+        public var stringValue: String {
+           return String(bytes: [
+                UInt8(truncatingIfNeeded: rawValue >> 24),
+                UInt8(truncatingIfNeeded: rawValue >> 16),
+                UInt8(truncatingIfNeeded: rawValue >> 8),
+                UInt8(truncatingIfNeeded: rawValue)
+            ], encoding: .macOSRoman) ?? "????"
+        }
+        
+        private static let descriptions: [Self: String] = [
+            .text: ".txt",
+            .readOnlyText: "Read-only text file",
+            .pict: ".pict",
+            .jpeg: ".jpg",
+            .gif: ".gif",
+            .tiff: ".tiff",
+            .png: ".png",
+            .pdf: ".pdf",
+            .aiff: ".aiff",
+            .wave: ".wav",
+            .mp3: ".mp3",
+            .quickTimeMovie: ".mov",
+            .mpeg: ".mpeg",
+            .application: "Application",
+            .binary: "Binary file",
+            .unknown: "Unknown file type"
+        ]
+
+        public var description: String { Self.descriptions[self] ?? stringValue }
+        
+        public var debugDescription: String { stringValue }
     }
-    
-    static let writableAttributes: Set<FileAttributeKey> = [.creationDate, .modificationDate, .ownerAccountName, .groupOwnerAccountName, .posixPermissions, .extensionHidden, .busy, .groupOwnerAccountID, .ownerAccountID, .immutable, .hfsTypeCode, .hfsCreatorCode]
 }
 
 extension FileManager {
@@ -211,8 +322,10 @@ extension FileManager {
         - attributes: The attributes to write.
         - url: The file resource URL.
      */
-    func setAttributes(_ attributes: FileAttributes, ofItemAt url: URL) throws {
-        try setAttributes(attributes.attributes, ofItemAtPath: url.path)
+    public func setAttributes(_ attributes: FileAttributes, ofItemAt url: URL) throws {
+        let writable = attributes.writableAttributes
+        guard !writable.isEmpty else { return }
+        try setAttributes(writable, ofItemAt: url )
     }
 }
 
