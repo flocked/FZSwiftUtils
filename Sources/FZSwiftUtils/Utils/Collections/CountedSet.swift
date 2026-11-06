@@ -11,6 +11,7 @@ import Foundation
 /// An unordered collection of unique elements that tracks the number of occurrences of each element.
 public struct CountedSet<Element: Hashable> {
 
+    /// The elements and their counts.
     public private(set) var elementCounts: [Element: Int] = [:]
 
     /// The number of unique elements in the counted set.
@@ -66,14 +67,11 @@ public struct CountedSet<Element: Hashable> {
 
     /// Accesses the number of occurrences of the specified element.
     public subscript(element: Element) -> Int {
-        get {
-            elementCounts[element] ?? 0
-        }
+        get { count(for: element) }
         set {
-            let oldValue = elementCounts[element] ?? 0
+            let oldValue = count(for: element)
             let newValue = Swift.max(newValue, 0)
             guard oldValue != newValue else { return }
-
             elementCounts[element] = newValue > 0 ? newValue : nil
             totalCount += newValue - oldValue
         }
@@ -81,7 +79,7 @@ public struct CountedSet<Element: Hashable> {
 
     /// Returns the number of occurrences of the specified element.
     public func count(for element: Element) -> Int {
-        self[element]
+        elementCounts[element] ?? 0
     }
 
     /// Returns a Boolean value that indicates whether the counted set contains the specified element.
@@ -91,8 +89,7 @@ public struct CountedSet<Element: Hashable> {
 
     /// Adds an occurrence of the specified element.
     public mutating func add(_ element: Element) {
-        elementCounts[element, default: 0] += 1
-        totalCount += 1
+        add(element, count: 1)
     }
 
     /// Adds the specified number of occurrences of an element.

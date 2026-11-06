@@ -9,7 +9,7 @@
 import Foundation
 
 /// Advance option used to advance collections.
-public enum AdvanceOption: Int, Hashable {
+public enum SelectionOption: Int, Hashable, Sendable {
     /// Next element.
     case next
     /// Previous element.
@@ -37,7 +37,7 @@ public extension Collection where Element: Equatable, Index == Int {
 
      - Returns: The advanced element for the current element.
      */
-    func advance(by type: AdvanceOption, current: Element?, excluding: [Element] = []) -> Element? {
+    func advance(by type: SelectionOption, current: Element?, excluding: [Element] = []) -> Element? {
         if let index = advanceIndex(by: type, current: current, excluding: excluding) {
             return self[index]
         }
@@ -54,7 +54,7 @@ public extension Collection where Element: Equatable, Index == Int {
 
      - Returns: The advanced index for the current element.
      */
-    func advanceIndex(by type: AdvanceOption, current: Element?, excluding: [Element] = []) -> Int? {
+    func advanceIndex(by type: SelectionOption, current: Element?, excluding: [Element] = []) -> Int? {
         guard !isEmpty else { return nil }
         if let current = current, let index = firstIndex(of: current) {
             let excluding = excluding.compactMap({ firstIndex(of: $0) }) + index
@@ -83,6 +83,61 @@ public extension Collection where Element: Equatable, Index == Int {
             case .random:
                 return indices.randomElement()
             }
+        }
+    }
+}
+
+extension BidirectionalCollection {
+    func advanceIndex(
+        _ index: Index,
+        by advancement: SelectionOption,
+        matching predicate: ((Element) throws -> Bool)? = nil
+    ) rethrows -> Index? {
+        guard !isEmpty, index != endIndex else { return nil }
+        switch advancement {
+        case .next:
+            var i = self.index(after: index)
+            while i != endIndex {
+                if try predicate?(self[i]) ?? true { return i }
+                formIndex(after: &i)
+            }
+            return nil
+        case .previous:
+            var i = index
+            while i != startIndex {
+                formIndex(before: &i)
+                if try predicate?(self[i]) ?? true { return i }
+            }
+            return nil
+        case .nextLooping:
+            var i = index
+            repeat {
+                i = self.index(after: i)
+                if i == endIndex { i = startIndex }
+                if try predicate?(self[i]) ?? true { return i }
+            } while i != index
+            return nil
+        case .previousLooping:
+            var i = index
+            repeat {
+                if i == startIndex { i = endIndex }
+                formIndex(before: &i)
+                if try predicate?(self[i]) ?? true { return i }
+            } while i != index
+            return nil
+        case .first:
+            return try firstIndex {
+                try predicate?($0) ?? true
+            }
+        case .last:
+            return try lastIndex {
+                try predicate?($0) ?? true
+            }
+        case .random:
+            let matchingIndices = try indices.filter {
+                try predicate?(self[$0]) ?? true
+            }
+            return matchingIndices.randomElement()
         }
     }
 }

@@ -213,17 +213,16 @@ open class ThroughputFormatter: Formatter {
         let magnitude = abs(bytesPerSecond)
         let selected = availableUnits.last(where: { magnitude >= pow(factor, Double($0.exponent)) }) ?? availableUnits[0]
         let value = bytesPerSecond / pow(factor, Double(selected.exponent))
-        let count = AttributedString(formatter.string(from: value)!) { $0.throughput = .count(value) }
-        let unit = AttributedString(selected.storage.localized(to: locale, unitStyle: unitStyle) + "/s") { $0.throughput = .unit(selected.unit) }
         
-        if includesCount && includesUnit {
-            return count + " " + unit
-        } else if includesCount {
+        let count = AttributedString(formatter.string(from: value)!) { $0.throughput.count = value }
+        let unit = AttributedString(selected.storage.localized(to: locale, unitStyle: unitStyle) + "/s") { $0.throughput.unit = selected.unit }
+        
+        if includesCount {
             return count
         } else if includesUnit {
             return unit
         }
-        return AttributedString()
+        return count + " " + unit
     }
     
     /// Returns an attributed string for the specified throughput in bytes per second.
@@ -275,29 +274,27 @@ open class ThroughputFormatter: Formatter {
     }
 }
 
-/// The component of a formatted throughput value.
-public enum ThroughputFormatAttribute: Hashable {
-    /// The numeric component and its scaled value.
-    case count(Double)
-    /// The unit component and its unit.
-    case unit(ThroughputFormatter.Units)
-}
-
-/// An attributed string key that identifies the component of a formatted throughput value.
-public struct ThroughputAttribute: AttributedStringKey {
-    public typealias Value = ThroughputFormatAttribute
-    public static let name = "FZSwiftUtils.ThroughputAttribute"
-}
-
 public extension AttributeScopes {
     /// Attributes used for formatted throughput values.
-    struct ThroughputAttributes: AttributeScope {
-        /// The component of a formatted throughput value.
-        public let throughput: ThroughputAttribute
-    }
+    var throughput: ThroughputAttributes.Type { ThroughputAttributes.self }
     
     /// Attributes used for formatted throughput values.
-    var throughput: ThroughputAttributes.Type { ThroughputAttributes.self }
+    struct ThroughputAttributes: AttributeScope {
+        /// The unit component of a formatted throughput value.
+        public let unit: Unit
+        /// The count component of a formatted throughput value.
+        public let count: Count
+        
+        public struct Unit: AttributedStringKey {
+            public typealias Value = ThroughputFormatter.Units
+            public static let name = "FZSwiftUtils.ThroughputAttributes.Unit"
+        }
+        
+        public struct Count: AttributedStringKey {
+            public typealias Value = Double
+            public static let name = "FZSwiftUtils.ThroughputAttributes.Count"
+        }
+    }
 }
 
 public extension AttributeDynamicLookup {

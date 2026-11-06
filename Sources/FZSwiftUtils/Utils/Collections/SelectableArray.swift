@@ -133,7 +133,7 @@ public struct SelectableArray<Element>: MutableCollection, RangeReplaceableColle
         select(at: index, exclusivly: false)
     }
 
-    public mutating func select(_ option: AdvanceOption, exclusivly: Bool) {
+    public mutating func select(_ option: SelectionOption, exclusivly: Bool) {
         switch option {
         case .next:
             if let first = selectedIndexes.first, first + 1 < elements.count {

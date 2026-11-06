@@ -7,6 +7,267 @@
 
 import Foundation
 
+/// A strategy for selecting random elements from a sequence.
+public enum SequenceSamplingStrategy: Hashable, Sendable {
+    /// Reservoir sampling using Algorithm R. O(n) time and O(k) memory.
+    case reservoir
+
+    /// Skip-based reservoir sampling using Algorithm L. O(n) traversal time and O(k) memory.
+    case vitter
+
+    /// Selects elements by shuffling the sequence. O(n) time and O(n) memory.
+    case shuffle
+}
+
+// MARK: - Sequence
+
+public extension Sequence {
+    /**
+     Returns randomly selected elements from the sequence.
+
+     When sampling without replacement, each position can be selected at most once.
+     Equal values at different positions may still appear multiple times.
+
+     - Parameters:
+       - amount: The number of elements to select.
+       - withoutReplacement: Whether each position can be selected only once.
+       - strategy: The sampling strategy.
+       - rng: The random number generator.
+     - Returns: An array containing the randomly selected elements.
+     */
+    func randomElements<G: RandomNumberGenerator>(amount: Int, withoutReplacement: Bool = true, strategy: SequenceSamplingStrategy = .reservoir, using rng: inout G) -> [Element] {
+        guard amount > 0 else { return [] }
+
+        guard withoutReplacement else {
+            let elements = Array(self)
+            guard !elements.isEmpty else { return [] }
+            return (0..<amount).map { _ in elements.randomElement(using: &rng)! }
+        }
+
+        let result: [Element]
+
+        switch strategy {
+        case .reservoir:
+            result = reservoirSample(amount: amount, using: &rng)
+        case .vitter:
+            result = vitterSample(amount: amount, using: &rng)
+        case .shuffle:
+            result = Array(shuffled(using: &rng).prefix(amount))
+        }
+
+        return result.shuffled(using: &rng)
+    }
+
+    /// Returns randomly selected elements from the sequence.
+    func randomElements(amount: Int, withoutReplacement: Bool = true, strategy: SequenceSamplingStrategy = .reservoir) -> [Element] {
+        var rng = SystemRandomNumberGenerator()
+        return randomElements(amount: amount, withoutReplacement: withoutReplacement, strategy: strategy, using: &rng)
+    }
+}
+
+// MARK: - Collection
+
+public extension Collection {
+    /**
+     Returns randomly selected elements from the collection.
+
+     Uses `.shuffle` by default because the collection supports repeated traversal.
+     */
+    func randomElements<G: RandomNumberGenerator>(amount: Int, withoutReplacement: Bool = true, strategy: SequenceSamplingStrategy = .shuffle, using rng: inout G) -> [Element] {
+        guard amount > 0 else { return [] }
+
+        guard withoutReplacement else {
+            guard !isEmpty else { return [] }
+            return (0..<amount).map { _ in randomElement(using: &rng)! }
+        }
+
+        let result: [Element]
+
+        switch strategy {
+        case .shuffle:
+            result = Array(shuffled(using: &rng).prefix(amount))
+        case .reservoir:
+            result = reservoirSample(amount: amount, using: &rng)
+        case .vitter:
+            result = vitterSample(amount: amount, using: &rng)
+        }
+
+        return result.shuffled(using: &rng)
+    }
+
+    /// Returns randomly selected elements from the collection.
+    func randomElements(amount: Int, withoutReplacement: Bool = true, strategy: SequenceSamplingStrategy = .shuffle) -> [Element] {
+        var rng = SystemRandomNumberGenerator()
+        return randomElements(amount: amount, withoutReplacement: withoutReplacement, strategy: strategy, using: &rng)
+    }
+}
+
+// MARK: - Sequence + Equatable
+
+public extension Sequence where Element: Equatable {
+    /// Returns a uniformly random element excluding the specified elements.
+    func randomElement<S: Sequence>(excluding: S) -> Element? where S.Element == Element {
+        var rng = SystemRandomNumberGenerator()
+        return randomElement(excluding: excluding, using: &rng)
+    }
+
+    /// Returns a uniformly random element excluding the specified elements.
+    func randomElement<S: Sequence, G: RandomNumberGenerator>(excluding: S, using rng: inout G) -> Element? where S.Element == Element {
+        let excluded = Array(excluding)
+        var selected: Element?
+        var matchingCount = 0
+
+        for element in self {
+            guard !excluded.contains(element) else { continue }
+
+            matchingCount += 1
+
+            if Int.random(in: 0..<matchingCount, using: &rng) == 0 {
+                selected = element
+            }
+        }
+
+        return selected
+    }
+
+    /// Returns randomly selected elements excluding the specified elements.
+    func randomElements<S: Sequence>(amount: Int, excluding: S, withoutReplacement: Bool = true, strategy: SequenceSamplingStrategy = .reservoir) -> [Element] where S.Element == Element {
+        var rng = SystemRandomNumberGenerator()
+        return randomElements(amount: amount, excluding: excluding, withoutReplacement: withoutReplacement, strategy: strategy, using: &rng)
+    }
+
+    /// Returns randomly selected elements excluding the specified elements.
+    func randomElements<S: Sequence, G: RandomNumberGenerator>(amount: Int, excluding: S, withoutReplacement: Bool = true, strategy: SequenceSamplingStrategy = .reservoir, using rng: inout G) -> [Element] where S.Element == Element {
+        guard amount > 0 else { return [] }
+
+        let excluded = Array(excluding)
+        return lazy.filter { !excluded.contains($0) }.randomElements(amount: amount, withoutReplacement: withoutReplacement, strategy: strategy, using: &rng)
+    }
+}
+
+// MARK: - Sequence + Hashable
+
+public extension Sequence where Element: Hashable {
+    /// Returns a uniformly random element excluding the specified elements using a set for efficient membership checks.
+    func randomElement<S: Sequence>(excluding: S) -> Element? where S.Element == Element {
+        var rng = SystemRandomNumberGenerator()
+        return randomElement(excluding: excluding, using: &rng)
+    }
+
+    /// Returns a uniformly random element excluding the specified elements using a set for efficient membership checks.
+    func randomElement<S: Sequence, G: RandomNumberGenerator>(excluding: S, using rng: inout G) -> Element? where S.Element == Element {
+        let excluded = Set(excluding)
+        var selected: Element?
+        var matchingCount = 0
+
+        for element in self {
+            guard !excluded.contains(element) else { continue }
+
+            matchingCount += 1
+
+            if Int.random(in: 0..<matchingCount, using: &rng) == 0 {
+                selected = element
+            }
+        }
+
+        return selected
+    }
+
+    /// Returns randomly selected elements excluding the specified elements using a set for efficient membership checks.
+    func randomElements<S: Sequence>(amount: Int, excluding: S, withoutReplacement: Bool = true, strategy: SequenceSamplingStrategy = .reservoir) -> [Element] where S.Element == Element {
+        var rng = SystemRandomNumberGenerator()
+        return randomElements(amount: amount, excluding: excluding, withoutReplacement: withoutReplacement, strategy: strategy, using: &rng)
+    }
+
+    /// Returns randomly selected elements excluding the specified elements using a set for efficient membership checks.
+    func randomElements<S: Sequence, G: RandomNumberGenerator>(amount: Int, excluding: S, withoutReplacement: Bool = true, strategy: SequenceSamplingStrategy = .reservoir, using rng: inout G) -> [Element] where S.Element == Element {
+        guard amount > 0 else { return [] }
+
+        let excluded = Set(excluding)
+        return lazy.filter { !excluded.contains($0) }.randomElements(amount: amount, withoutReplacement: withoutReplacement, strategy: strategy, using: &rng)
+    }
+}
+
+// MARK: - Sampling Algorithms
+
+fileprivate extension Sequence {
+    /// Selects elements using reservoir sampling Algorithm R.
+    func reservoirSample<G: RandomNumberGenerator>(amount: Int, using rng: inout G) -> [Element] {
+        guard amount > 0 else { return [] }
+
+        var iterator = makeIterator()
+        var reservoir: [Element] = []
+        reservoir.reserveCapacity(Swift.min(amount, underestimatedCount))
+
+        while reservoir.count < amount, let element = iterator.next() {
+            reservoir.append(element)
+        }
+
+        guard reservoir.count == amount else { return reservoir }
+
+        var count = amount
+
+        while let element = iterator.next() {
+            count += 1
+            let index = Int.random(in: 0..<count, using: &rng)
+
+            if index < amount {
+                reservoir[index] = element
+            }
+        }
+
+        return reservoir
+    }
+
+    /// Selects elements using skip-based reservoir sampling Algorithm L.
+    func vitterSample<G: RandomNumberGenerator>(amount: Int, using rng: inout G) -> [Element] {
+        guard amount > 0 else { return [] }
+
+        var iterator = makeIterator()
+        var reservoir: [Element] = []
+        reservoir.reserveCapacity(Swift.min(amount, underestimatedCount))
+
+        while reservoir.count < amount, let element = iterator.next() {
+            reservoir.append(element)
+        }
+
+        guard reservoir.count == amount else { return reservoir }
+
+        let k = Double(amount)
+
+        // Returns a random value in (0, 1].
+        func randomUnit() -> Double {
+            1.0 - Double.random(in: 0..<1, using: &rng)
+        }
+
+        var weight = exp(log(randomUnit()) / k)
+
+        while true {
+            let denominator = log1p(-weight)
+            let skip = log(randomUnit()) / denominator
+
+            guard skip.isFinite, skip >= 0, skip < Double(Int.max) else {
+                return reservoir
+            }
+
+            var remaining = Int(skip)
+
+            while remaining > 0 {
+                guard iterator.next() != nil else { return reservoir }
+                remaining -= 1
+            }
+
+            guard let element = iterator.next() else { return reservoir }
+
+            let index = Int.random(in: 0..<amount, using: &rng)
+            reservoir[index] = element
+
+            weight *= exp(log(randomUnit()) / k)
+        }
+    }
+}
+
+/*
 public extension Sequence where Element: Equatable {
     /**
      Returns a random element of the collection excluding any of the specified elements.
@@ -15,7 +276,7 @@ public extension Sequence where Element: Equatable {
      - Returns: A random element from the collection excluding any of the specified elements. If the collection is empty, the method returns `nil.
      */
     func randomElement<S: Sequence<Element>>(excluding: S) -> Element? {
-        shuffled().first(where: { !excluding.contains($0) })
+        return shuffled().first(where: { !excluding.contains($0) })
     }
 }
 
@@ -161,39 +422,57 @@ fileprivate extension Sequence {
     }
 
     func vitterSample<G: RandomNumberGenerator>(amount: Int, using rng: inout G) -> [Element] {
-        var result: [Element] = []
-        result.reserveCapacity(amount)
+        guard amount > 0 else { return [] }
 
         var iterator = makeIterator()
-        var i = 0
+        var reservoir: [Element] = []
+        reservoir.reserveCapacity(amount)
 
-        // Fill the reservoir
-        while i < amount, let el = iterator.next() {
-            result.append(el)
-            i += 1
+        while reservoir.count < amount, let element = iterator.next() {
+            reservoir.append(element)
         }
 
-        guard i == amount else {
-            return result // not enough elements
+        guard reservoir.count == amount else {
+            return reservoir
         }
 
-        var w = 1.0
+        let k = Double(amount)
+
+        func randomUnit() -> Double {
+            // Generate U in (0, 1].
+            1.0 - Double.random(in: 0..<1, using: &rng)
+        }
+
+        var w = exp(log(randomUnit()) / k)
 
         while true {
-            w *= Self.nextW(k: amount, using: &rng)
-            var offset = Self.nextOffset(w: w, using: &rng)
+            let denominator = log1p(-w)
+            let skip = log(randomUnit()) / denominator
 
-            while offset > 0, let _ = iterator.next() {
-                offset -= 1
+            guard skip.isFinite, skip >= 0, skip < Double(Int.max) else {
+                break
             }
 
-            guard let next = iterator.next() else { break }
+            var remaining = Int(skip)
 
-            let j = Int.random(in: 0..<amount, using: &rng)
-            result[j] = next
+            while remaining > 0 {
+                guard iterator.next() != nil else {
+                    return reservoir
+                }
+                remaining -= 1
+            }
+
+            guard let element = iterator.next() else {
+                return reservoir
+            }
+
+            let index = Int.random(in: 0..<amount, using: &rng)
+            reservoir[index] = element
+
+            w *= exp(log(randomUnit()) / k)
         }
 
-        return result
+        return reservoir
     }
 
     static func nextW<G: RandomNumberGenerator>(k: Int, using rng: inout G) -> Double {
@@ -203,5 +482,171 @@ fileprivate extension Sequence {
     static func nextOffset<G: RandomNumberGenerator>(w: Double, using rng: inout G) -> Int {
         let offset = log(Double.random(in: 0..<1, using: &rng)) / log1p(-w)
         return offset < Double(Int.max) ? Int(offset) : Int.max
+    }
+}
+*/
+
+public enum RandomSelectionStrategy: Hashable, Sendable {
+    /// Uniformly selects among all matching elements using reservoir sampling.
+    case uniform
+    /// Starts at a random index and searches forward, wrapping around if necessary.
+    case firstMatch
+    /// Starts at a random index and searches backward, wrapping around if necessary.
+    case lastMatch
+    /// Visits elements in random order until a matching element is found.
+    case shuffled
+}
+
+extension Collection {
+    /**
+     Returns a random element satisfying the predicate using the specified selection strategy.
+
+     - Parameters:
+       - strategy: The strategy used to select a matching element.
+       - predicate: A closure that determines whether an element is eligible.
+     - Returns: A matching element, or `nil` if no element satisfies the predicate.
+     */
+    public func randomElement(using strategy: RandomSelectionStrategy = .uniform, where predicate: (Element) throws -> Bool) rethrows -> Element? {
+        try _randomElementBase(using: strategy, where: predicate)
+    }
+    
+    fileprivate func _randomElementBase(using strategy: RandomSelectionStrategy, where predicate: (Element) throws -> Bool) rethrows -> Element? {
+        guard !isEmpty else { return nil }
+        switch strategy {
+        case .uniform:
+            var selected: Element?
+            var count = 0
+            for element in self {
+                if try predicate(element) {
+                    count += 1
+                    if Int.random(in: 0..<count) == 0 {
+                        selected = element
+                    }
+                }
+            }
+            return selected
+        case .firstMatch:
+            let offset = Int.random(in: 0..<count)
+            let start = index(startIndex, offsetBy: offset)
+            for element in self[start...] {
+                if try predicate(element) {
+                    return element
+                }
+            }
+            for element in self[..<start] {
+                if try predicate(element) {
+                    return element
+                }
+            }
+            return nil
+        case .lastMatch:
+            let indices = Array(self.indices)
+            let start = Int.random(in: 0..<indices.count)
+            for position in stride(from: start, through: 0, by: -1) {
+                let element = self[indices[position]]
+                if try predicate(element) {
+                    return element
+                }
+            }
+            if start + 1 < indices.count {
+                for position in stride(from: indices.count - 1, through: start + 1, by: -1) {
+                    let element = self[indices[position]]
+                    if try predicate(element) {
+                        return element
+                    }
+                }
+            }
+            return nil
+        case .shuffled:
+            for index in indices.shuffled() {
+                if try predicate(self[index]) {
+                    return self[index]
+                }
+            }
+            return nil
+        }
+    }
+}
+
+// MARK: - BidirectionalCollection
+
+public extension BidirectionalCollection {
+    /**
+     Returns a random element satisfying the predicate using the specified selection strategy.
+
+     - Parameters:
+       - strategy: The strategy used to select a matching element.
+       - predicate: A closure that determines whether an element is eligible.
+     - Returns: A matching element, or `nil` if no element satisfies the predicate.
+     */
+    func randomElement(using strategy: RandomSelectionStrategy = .uniform, where predicate: (Element) throws -> Bool) rethrows -> Element? {
+        guard !isEmpty else { return nil }
+        switch strategy {
+        case .lastMatch:
+            let offset = Int.random(in: 0..<count)
+            let start = index(startIndex, offsetBy: offset)
+            var i = start
+            repeat {
+                if try predicate(self[i]) {
+                    return self[i]
+                }
+                if i == startIndex {
+                    i = index(before: endIndex)
+                } else {
+                    formIndex(before: &i)
+                }
+            } while i != start
+            return nil
+        default:
+            return try _randomElementBase(using: strategy, where: predicate)
+        }
+    }
+}
+
+// MARK: - RandomAccessCollection
+
+public extension RandomAccessCollection {
+    /**
+     Returns a random element satisfying the predicate using the specified selection strategy.
+
+     - Parameters:
+       - strategy: The strategy used to select a matching element.
+       - predicate: A closure that determines whether an element is eligible.
+     - Returns: A matching element, or `nil` if no element satisfies the predicate.
+     */
+    func randomElement(using strategy: RandomSelectionStrategy = .uniform, where predicate: (Element) throws -> Bool) rethrows -> Element? {
+        guard !isEmpty else { return nil }
+
+        switch strategy {
+        case .shuffled:
+            var remaining = Array(indices)
+            while !remaining.isEmpty {
+                let position = Int.random(in: 0..<remaining.count)
+                remaining.swapAt(position, remaining.count - 1)
+                let index = remaining.removeLast()
+
+                if try predicate(self[index]) {
+                    return self[index]
+                }
+            }
+            return nil
+        case .lastMatch:
+            let offset = Int.random(in: 0..<count)
+            let start = index(startIndex, offsetBy: offset)
+            var i = start
+            repeat {
+                if try predicate(self[i]) {
+                    return self[i]
+                }
+                if i == startIndex {
+                    i = index(before: endIndex)
+                } else {
+                    formIndex(before: &i)
+                }
+            } while i != start
+            return nil
+        default:
+            return try _randomElementBase(using: strategy, where: predicate)
+        }
     }
 }
